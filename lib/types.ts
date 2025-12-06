@@ -1,0 +1,60 @@
+export type Category =
+    | "Jobs"
+    | "Properties"
+    | "Rentals"
+    | "Cars"
+    | "Bikes"
+    | "Electronics"
+    | "Services"
+    | "Buy/Sell"
+    | "Education"
+    | "Events"
+    | "Community"
+    | "Lost & Found";
+
+export interface Post {
+    id: string;
+    title: string;
+    description: string;
+    category: Category;
+    city: string;
+    contact_phone: string;
+    contact_name?: string;
+    whatsapp?: string;
+    price?: string;
+    salary?: string;
+    job_type?: string;
+    experience?: string;
+    education?: string;
+    company_name?: string;
+    form_link?: string;
+    created_at: string;
+    expires_at: string;
+    views: number;
+    hash_value?: string;
+}
+
+export interface CreatePostRequest {
+    title: string;
+    description: string;
+    category: Category;
+    city: string;
+    contact_phone: string;
+    contact_name?: string;
+    whatsapp?: string;
+    price?: string;
+    salary?: string;
+    job_type?: string;
+    experience?: string;
+    education?: string;
+    company_name?: string;
+    form_link?: string;
+    _honey?: string;
+}
+
+export interface CityStats {
+    city: string;
+    posts_count: number;
+    views_count: number;
+    score?: number;
+}
