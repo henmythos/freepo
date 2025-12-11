@@ -32,6 +32,10 @@ export interface Post {
     expires_at: string;
     views: number;
     hash_value?: string;
+    image1?: string;
+    image2?: string;
+    image1_alt?: string;
+    image2_alt?: string;
 }
 
 export interface CreatePostRequest {
@@ -50,6 +54,10 @@ export interface CreatePostRequest {
     company_name?: string;
     form_link?: string;
     _honey?: string;
+    image1?: string;
+    image2?: string;
+    image1_alt?: string;
+    image2_alt?: string;
 }
 
 export interface CityStats {

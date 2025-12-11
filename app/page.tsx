@@ -358,6 +358,11 @@ export default function HomePage() {
                                     </Link>
                                 </li>
                                 <li>
+                                    <Link href="/my-ads" className="hover:text-black hover:underline">
+                                        Manage My Ads
+                                    </Link>
+                                </li>
+                                <li>
                                     <a
                                         href="/api/feed"
                                         target="_blank"

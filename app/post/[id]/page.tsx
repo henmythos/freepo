@@ -75,16 +75,41 @@ export default async function PostDetailPage({ params }: PageProps) {
                     <ArrowLeft size={16} className="mr-1" /> Back
                 </Link>
 
-                {/* Hero Image for Google Discover */}
-                <div className="mb-6 h-48 md:h-64 overflow-hidden border border-gray-200 bg-gray-100 relative">
-                    <img
-                        src={categoryImage}
-                        alt={post.category}
-                        className="w-full h-full object-cover opacity-90"
-                    />
-                    <div className="absolute bottom-0 left-0 bg-black text-white px-3 py-1 font-bold text-xs uppercase tracking-widest">
-                        {post.category}
-                    </div>
+                {/* Hero Images */}
+                <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(post.image1 || post.image2) ? (
+                        <>
+                            {post.image1 && (
+                                <div className="h-64 border border-gray-200 bg-gray-100 relative overflow-hidden group">
+                                    <img
+                                        src={post.image1}
+                                        alt={post.image1_alt || post.title}
+                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                    />
+                                </div>
+                            )}
+                            {post.image2 && (
+                                <div className="h-64 border border-gray-200 bg-gray-100 relative overflow-hidden group">
+                                    <img
+                                        src={post.image2}
+                                        alt={post.image2_alt || post.title}
+                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                    />
+                                </div>
+                            )}
+                        </>
+                    ) : (
+                        <div className="md:col-span-2 h-48 md:h-64 overflow-hidden border border-gray-200 bg-gray-100 relative">
+                            <img
+                                src={categoryImage}
+                                alt={post.category}
+                                className="w-full h-full object-cover opacity-90"
+                            />
+                            <div className="absolute bottom-0 left-0 bg-black text-white px-3 py-1 font-bold text-xs uppercase tracking-widest">
+                                {post.category}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="border-b-2 border-black pb-4 mb-6">
@@ -144,7 +169,7 @@ export default async function PostDetailPage({ params }: PageProps) {
                             href={`tel:${post.contact_phone}`}
                             className="flex-1 bg-black text-white text-center py-3 font-bold uppercase text-sm hover:bg-gray-800 flex justify-center items-center gap-2"
                         >
-                            <Phone size={16} /> Call {post.contact_phone}
+                            <Phone size={16} /> Call Now
                         </a>
 
                         {post.whatsapp && (

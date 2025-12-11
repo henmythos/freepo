@@ -24,9 +24,29 @@ async function ensureTable() {
       company_name TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       expires_at DATETIME,
-      views INTEGER DEFAULT 0
+      views INTEGER DEFAULT 0,
+      image1 TEXT,
+      image2 TEXT,
+      image1_alt TEXT,
+      image2_alt TEXT
     );
   `);
+
+    // Migration for existing tables
+    const columnsToAdd = [
+        "image1 TEXT",
+        "image2 TEXT",
+        "image1_alt TEXT",
+        "image2_alt TEXT"
+    ];
+
+    for (const col of columnsToAdd) {
+        try {
+            await db.execute(`ALTER TABLE posts ADD COLUMN ${col}`);
+        } catch (e) {
+            // Ignore if column exists
+        }
+    }
 
     // Also create city_stats table
     await db.execute(`
@@ -77,6 +97,12 @@ export async function GET(request: NextRequest) {
         if (category && category !== "All") {
             sql += " AND category = ?";
             args.push(category);
+        }
+        const phone = searchParams.get("phone");
+        if (phone) {
+            const cleanPhone = phone.replace(/\D/g, "").substring(0, 15);
+            sql += " AND contact_phone = ?";
+            args.push(cleanPhone);
         }
         if (search) {
             sql += " AND (title LIKE ? OR description LIKE ?)";
@@ -155,13 +181,26 @@ export async function POST(request: NextRequest) {
             experience = null,
             education = null,
             company_name = null,
+            image1 = null,
+            image2 = null,
         } = body;
+
+        // Generate ALT text
+        let image1_alt = null;
+        let image2_alt = null;
+        if (image1) image1_alt = `${title} - ${category} in ${city} (Image 1)`;
+        if (image2) image2_alt = `${title} - ${category} in ${city} (Image 2)`;
 
         // Insert post
         await db.execute({
             sql: `
-        INSERT INTO posts (id, title, category, city, description, contact_name, contact_phone, whatsapp, form_link, salary, price, job_type, experience, education, company_name, expires_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '+30 days'));
+        INSERT INTO posts (
+          id, title, category, city, description, 
+          contact_name, contact_phone, whatsapp, form_link, 
+          salary, price, job_type, experience, education, company_name, 
+          expires_at, image1, image2, image1_alt, image2_alt
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '+30 days'), ?, ?, ?, ?);
       `,
             args: [
                 id,
@@ -179,6 +218,10 @@ export async function POST(request: NextRequest) {
                 experience,
                 education,
                 company_name,
+                image1,
+                image2,
+                image1_alt,
+                image2_alt
             ],
         });
 
@@ -193,6 +236,70 @@ export async function POST(request: NextRequest) {
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Unknown error";
         console.error("[POST ERROR]", message);
+        return NextResponse.json({ error: message }, { status: 500 });
+    }
+}
+
+// S3 Client for Deletion
+import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
+const R2 = new S3Client({
+    region: "auto",
+    endpoint: process.env.R2_ENDPOINT!,
+    credentials: {
+        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+    },
+});
+
+async function deleteImage(url: string | null) {
+    if (!url) return;
+    try {
+        const filename = url.split("/").pop();
+        if (!filename) return;
+        await R2.send(new DeleteObjectCommand({ Bucket: "freepo-images", Key: filename }));
+    } catch (e) { console.error("R2 Delete Error", e); }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get("id");
+        const phone = searchParams.get("phone");
+
+        if (!id || !phone) {
+            return NextResponse.json({ error: "Missing id or phone" }, { status: 400 });
+        }
+
+        const cleanPhone = phone.replace(/\D/g, "");
+        const db = getDB();
+
+        // Verify ownership
+        const { rows } = await db.execute({
+            sql: "SELECT * FROM posts WHERE id = ? AND contact_phone = ?",
+            args: [id, cleanPhone]
+        });
+
+        if (rows.length === 0) {
+            return NextResponse.json({ error: "Post not found or phone mismatch" }, { status: 404 });
+        }
+
+        const post = rows[0] as any;
+
+        // Delete Images
+        await deleteImage(post.image1);
+        await deleteImage(post.image2);
+
+        // Delete Post
+        await db.execute({
+            sql: "DELETE FROM posts WHERE id = ?",
+            args: [id]
+        });
+
+        return NextResponse.json({ success: true });
+
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : "Unknown error";
+        console.error("[DELETE ERROR]", message);
         return NextResponse.json({ error: message }, { status: 500 });
     }
 }

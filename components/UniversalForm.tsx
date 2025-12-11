@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { CreatePostRequest, Category } from "@/lib/types";
 import { CATEGORIES, TOP_CITIES, JOB_TYPES } from "@/lib/constants";
-import { Loader2 } from "lucide-react";
+import { Loader2, ImagePlus, X } from "lucide-react";
+import Image from "next/image";
 
 interface UniversalFormProps {
   onSubmit: (data: CreatePostRequest) => Promise<void>;
@@ -11,9 +12,11 @@ interface UniversalFormProps {
 
 export default function UniversalForm({ onSubmit }: UniversalFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState<Partial<CreatePostRequest>>({
     category: "Jobs",
   });
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -24,11 +27,58 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    if (uploadedImages.length + files.length > 2) {
+      alert("You can only upload a maximum of 2 images.");
+      return;
+    }
+
+    setIsUploading(true);
+    const data = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      data.append("files", files[i]);
+    }
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: data,
+      });
+      const result = await res.json();
+
+      if (!res.ok) {
+        throw new Error(result.error || "Upload failed");
+      }
+
+      setUploadedImages((prev) => [...prev, ...result.urls]);
+    } catch (error) {
+      console.error("Upload Error:", error);
+      alert("Failed to upload images. " + (error as Error).message);
+    } finally {
+      setIsUploading(false);
+      // Reset input
+      e.target.value = "";
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await onSubmit(formData as CreatePostRequest);
+      // Add images to form data
+      const finalData = {
+        ...formData,
+        image1: uploadedImages[0] || undefined,
+        image2: uploadedImages[1] || undefined,
+      };
+      await onSubmit(finalData as CreatePostRequest);
     } catch (error) {
       console.error("Submit error:", error);
     }
@@ -79,6 +129,52 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* Image Upload */}
+      <div>
+        <label className="block font-bold text-sm uppercase mb-2">
+          Images (Optional - Max 2)
+        </label>
+
+        <div className="flex flex-wrap gap-4 mb-3">
+          {uploadedImages.map((url, index) => (
+            <div key={url} className="relative w-24 h-24 border border-gray-200 rounded overflow-hidden group">
+              <img src={url} alt="Preview" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-bl opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+
+          {uploadedImages.length < 2 && (
+            <label className={`w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-black transition-colors ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              {isUploading ? (
+                <Loader2 className="animate-spin text-gray-400" size={24} />
+              ) : (
+                <>
+                  <ImagePlus className="text-gray-400 mb-1" size={24} />
+                  <span className="text-[10px] text-gray-500 uppercase font-bold">Add Photo</span>
+                </>
+              )}
+              <input
+                type="file"
+                accept="image/png, image/jpeg, image/webp"
+                multiple
+                className="hidden"
+                onChange={handleImageUpload}
+                disabled={isUploading}
+              />
+            </label>
+          )}
+        </div>
+        <p className="text-xs text-gray-500">
+          JPG, PNG or WebP. Max 5MB each.
+        </p>
       </div>
 
       {/* Title */}
@@ -288,7 +384,7 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
       {/* Submit */}
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || isUploading}
         className="w-full bg-black text-white py-4 font-bold uppercase text-lg tracking-wider hover:bg-gray-800 transition disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {isSubmitting && <Loader2 className="animate-spin" size={20} />}
