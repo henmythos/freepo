@@ -57,11 +57,7 @@ export async function GET() {
         // though typically "expires_at < now" is fairly stable.
         // Let's stick to the original logic but just ensure we delete what we found.
 
-        const result = await db.execute(
-            `DELETE FROM posts WHERE id IN (${rows.map(() => "?").join(",")})`,
-            { args: rows.map(r => r.id) } // Wait, db.execute signature in previous files was slightly different. 
-            // db.execute({ sql: ..., args: [] })
-        );
+
 
         // Let's use the safe object syntax
         const placeholders = rows.map(() => "?").join(",");
