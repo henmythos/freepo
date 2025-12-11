@@ -27,6 +27,76 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Image Optimization Helper
+  const processImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      // 1. Initial Size Check
+      if (file.size > 8 * 1024 * 1024) { // 8MB
+        reject(new Error("Image too large. Please reduce file size using IMG365 (https://img365.in/compress)"));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new window.Image(); // Avoid conflict with next/image
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            reject(new Error("Canvas not supported"));
+            return;
+          }
+
+          // Target dimensions
+          const TARGET_WIDTH = 1200;
+          const TARGET_HEIGHT = 628;
+          canvas.width = TARGET_WIDTH;
+          canvas.height = TARGET_HEIGHT;
+
+          // Calculate "cover" fit
+          const scale = Math.max(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
+          const x = (TARGET_WIDTH - img.width * scale) / 2;
+          const y = (TARGET_HEIGHT - img.height * scale) / 2;
+
+          ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+          // Compress to WebP
+          const tryCompress = (quality: number) => {
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) {
+                  reject(new Error("Compression failed"));
+                  return;
+                }
+
+                // Check size (350KB limit to be safe for <300KB target)
+                if (blob.size > 350 * 1024) {
+                  if (quality > 0.55) {
+                    // Retry with lower quality
+                    tryCompress(0.55);
+                  } else {
+                    reject(new Error("Image too large after optimization. Please compress using IMG365.in and try again."));
+                  }
+                } else {
+                  resolve(blob);
+                }
+              },
+              "image/webp",
+              quality
+            );
+          };
+
+          // Start with 0.70 quality
+          tryCompress(0.70);
+        };
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -38,8 +108,24 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
 
     setIsUploading(true);
     const data = new FormData();
+    let hasError = false;
+
     for (let i = 0; i < files.length; i++) {
-      data.append("files", files[i]);
+      try {
+        const processedBlob = await processImage(files[i]);
+        // Append with .webp extension
+        data.append("files", processedBlob, files[i].name.replace(/\.[^/.]+$/, "") + ".webp");
+      } catch (err: unknown) {
+        alert((err as Error).message);
+        hasError = true;
+        break; // Stop on first error
+      }
+    }
+
+    if (hasError) {
+      setIsUploading(false);
+      e.target.value = ""; // Reset
+      return;
     }
 
     try {
