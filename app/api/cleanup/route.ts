@@ -19,7 +19,7 @@ async function deleteImage(url: string | null) {
         if (!filename) return;
 
         await R2.send(new DeleteObjectCommand({
-            Bucket: "freepo-images",
+            Bucket: process.env.R2_BUCKET!,
             Key: filename
         }));
         console.log(`[R2 DELETE] ${filename}`);

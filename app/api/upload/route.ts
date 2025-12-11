@@ -54,11 +54,7 @@ export async function POST(request: NextRequest) {
             const filename = `${crypto.randomUUID()}.webp`;
 
             const command = new PutObjectCommand({
-                Bucket: "freepo-images", // Derived from R2_BUCKET URL in prompt, user should verify or use env var if preferred, but simpler to hardcode bucket name if known or extract. 
-                // Wait, user gave R2_BUCKET = https://....r2.../freepo-images. The bucket name is likely 'freepo-images'.
-                // Actually, let's use the bucket name from the prompt cleanly.
-                // Prompt: R2_BUCKET = .../freepo-images.
-                // I will use "freepo-images" as the bucket name.
+                Bucket: process.env.R2_BUCKET!,
                 Key: filename,
                 Body: processedBuffer,
                 ContentType: "image/webp",
