@@ -66,7 +66,7 @@ export default function HomePage() {
                     setNextCursor(lastPost.created_at);
                 }
 
-                if (fetchedPosts.length < 12) { // 12 is default limit
+                if (fetchedPosts.length < 20) { // 20 is default limit
                     setHasMore(false);
                 }
             } catch (error) {
@@ -99,7 +99,7 @@ export default function HomePage() {
                 setNextCursor(lastPost.created_at);
             }
 
-            if (newPosts.length < 12) {
+            if (newPosts.length < 20) {
                 setHasMore(false);
             }
         } catch (error) {
@@ -108,22 +108,7 @@ export default function HomePage() {
         setIsLoadingMore(false);
     };
 
-    // Intersection Observer for Infinite Scroll
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
-                    loadMore();
-                }
-            },
-            { threshold: 0.5 }
-        );
-
-        const sentinel = document.getElementById("sentinel");
-        if (sentinel) observer.observe(sentinel);
-
-        return () => observer.disconnect();
-    }, [hasMore, isLoading, isLoadingMore, nextCursor]);
+    // Load more is now triggered by button click, not auto-scroll
 
     return (
         <div className="min-h-screen flex flex-col max-w-7xl mx-auto px-0 md:px-6 lg:px-8 md:border-x border-gray-200 md:shadow-2xl bg-paper overflow-x-hidden">
@@ -163,7 +148,7 @@ export default function HomePage() {
             </header>
 
             {/* Main */}
-            <main className="flex-grow py-4 md:py-8 grid grid-cols-1 lg:grid-cols-12 gap-8 px-4 md:px-0">
+            <main className="flex-grow py-2 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 px-4 md:px-0">
                 {/* Left Sidebar */}
                 <aside className="hidden lg:block lg:col-span-3 space-y-8 border-r border-gray-200 pr-6">
                     <div>
@@ -207,7 +192,7 @@ export default function HomePage() {
                 {/* Center */}
                 <div className="col-span-1 lg:col-span-6">
                     {/* Mobile Actions */}
-                    <div className="lg:hidden mb-6 flex gap-2">
+                    <div className="lg:hidden mb-3 flex gap-2">
                         <Link
                             href="/post-ad"
                             className="flex-1 bg-black text-white text-center py-3 font-bold uppercase text-sm"
@@ -217,8 +202,8 @@ export default function HomePage() {
                     </div>
 
                     {/* Mobile Trending Cities Scroll */}
-                    <div className="lg:hidden mb-6 overflow-x-auto pb-2 no-scrollbar -mx-4 px-4">
-                        <div className="flex gap-3">
+                    <div className="lg:hidden mb-3 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4">
+                        <div className="flex gap-2">
                             {stats.slice(0, 8).map((s) => (
                                 <button
                                     key={s.city}
@@ -234,7 +219,7 @@ export default function HomePage() {
                     </div>
 
                     {/* Search & Filter */}
-                    <div className="mb-6 space-y-4">
+                    <div className="mb-4 space-y-3">
                         <div className="relative">
                             <Search
                                 className="absolute left-3 top-3 text-gray-400"
@@ -299,8 +284,21 @@ export default function HomePage() {
                                 ))}
 
                                 {hasMore && (
-                                    <div id="sentinel" className="py-8 text-center flex justify-center">
-                                        {isLoadingMore && <Loader2 className="animate-spin" size={24} />}
+                                    <div className="py-6 text-center">
+                                        <button
+                                            onClick={loadMore}
+                                            disabled={isLoadingMore}
+                                            className="bg-black text-white px-8 py-3 font-bold uppercase text-sm hover:bg-gray-800 transition disabled:opacity-50 inline-flex items-center gap-2"
+                                        >
+                                            {isLoadingMore ? (
+                                                <>
+                                                    <Loader2 className="animate-spin" size={16} />
+                                                    Loading...
+                                                </>
+                                            ) : (
+                                                "Load More"
+                                            )}
+                                        </button>
                                     </div>
                                 )}
                             </>

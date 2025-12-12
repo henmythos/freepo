@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         const category = searchParams.get("category");
         const search = searchParams.get("search");
         const cursor = searchParams.get("cursor"); // TIMESTAMP for pagination
-        const limit = Math.min(parseInt(searchParams.get("limit") || "12"), 50); // Default 12 for grid
+        const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50); // Default 20 posts
 
         // Single post fetch
         if (id) {

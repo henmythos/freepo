@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Post } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
+import { ImageIcon } from "lucide-react";
 
 interface PostCardProps {
   post: Post;
@@ -11,48 +12,57 @@ interface PostCardProps {
 export default function PostCard({ post }: PostCardProps) {
   return (
     <Link href={`/post/${post.id}`} className="block">
-      <article className="border-b border-gray-200 py-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-4">
-        {post.image1 && (
-          <div className="relative w-24 h-24 flex-shrink-0 bg-gray-100 border border-gray-200">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+      <article className="flex items-start gap-3 p-3 border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
+        {/* Fixed size image container - always rendered for alignment */}
+        <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-gray-100 border border-gray-200">
+          {post.image1 ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={post.image1}
               alt={post.image1_alt || post.title}
               className="w-full h-full object-cover"
               loading="lazy"
             />
-          </div>
-        )}
-        <div className="flex justify-between items-start gap-4 flex-1">
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-1">
-              <span className="bg-gray-100 px-2 py-0.5 font-medium uppercase tracking-wide">
-                {post.category}
-              </span>
-              <span>{post.city}</span>
-              <span>•</span>
-              <span>
-                {formatDistanceToNow(new Date(post.created_at), {
-                  addSuffix: true,
-                })}
-              </span>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <ImageIcon size={24} className="text-gray-300" />
             </div>
-            <h2 className="font-serif text-lg font-bold text-ink leading-tight mb-1 line-clamp-2">
-              {post.title}
-            </h2>
-            <p className="text-sm text-gray-600 line-clamp-2">
-              {post.description}
-            </p>
+          )}
+        </div>
+
+        {/* Content container */}
+        <div className="flex flex-col flex-grow min-w-0">
+          {/* Meta info */}
+          <div className="flex flex-wrap items-center gap-1.5 text-xs text-gray-500 mb-1">
+            <span className="bg-gray-100 px-1.5 py-0.5 font-medium uppercase tracking-wide text-[10px]">
+              {post.category}
+            </span>
+            <span>{post.city}</span>
+            <span>•</span>
+            <span>
+              {formatDistanceToNow(new Date(post.created_at), {
+                addSuffix: true,
+              })}
+            </span>
           </div>
-          <div className="flex-shrink-0 text-right">
+
+          {/* Title */}
+          <h2 className="font-serif text-base font-bold text-ink leading-snug mb-0.5 line-clamp-2">
+            {post.title}
+          </h2>
+
+          {/* Price/Salary inline */}
+          <div className="flex items-center gap-2 mt-auto">
             {post.price && (
-              <div className="font-bold text-lg text-ink">{post.price}</div>
+              <span className="font-bold text-sm text-ink">{post.price}</span>
             )}
             {post.salary && (
-              <div className="font-bold text-lg text-ink">{post.salary}</div>
+              <span className="font-bold text-sm text-ink">{post.salary}</span>
             )}
             {post.job_type && (
-              <div className="text-xs text-gray-500 mt-1">{post.job_type}</div>
+              <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                {post.job_type}
+              </span>
             )}
           </div>
         </div>
