@@ -3,8 +3,8 @@ import { ArrowLeft, Info, Globe, CheckCircle, Users } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "About Us | Freepo.online",
-    description: "Learn about Freepo.online - India's fastest, simplest, and free classifieds platform.",
+    title: "About Us | Freepo.in",
+    description: "Learn about Freepo.in - India's fastest, simplest, and free classifieds platform.",
 };
 
 export default function AboutPage() {
@@ -26,7 +26,7 @@ export default function AboutPage() {
 
                     <div className="prose prose-lg text-gray-800 font-serif mt-6">
                         <p className="text-lg sm:text-xl font-medium leading-relaxed">
-                            Freepo.online is India&apos;s fastest, simplest, and completely free classified ads platform —
+                            Freepo.in is India&apos;s fastest, simplest, and completely free classified ads platform —
                             designed with the look and feel of a classic newspaper.
                         </p>
 
@@ -84,7 +84,7 @@ export default function AboutPage() {
                         <div className="bg-gray-100 p-6 mt-8 text-center border border-gray-300">
                             <p className="font-bold text-lg">Made with ❤️ in India 🇮🇳</p>
                             <p className="text-sm text-gray-600 mt-2">
-                                Freepo.online — Connecting buyers and sellers since 2024
+                                Freepo.in — Connecting buyers and sellers since 2024
                             </p>
                         </div>
                     </div>

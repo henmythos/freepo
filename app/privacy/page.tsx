@@ -3,8 +3,8 @@ import { ArrowLeft, Lock, Eye, Shield, Globe, Clock } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Privacy Policy | Freepo.online",
-    description: "Privacy policy for Freepo.online - India's free classifieds platform.",
+    title: "Privacy Policy | Freepo.in",
+    description: "Privacy policy for Freepo.in - India's free classifieds platform.",
 };
 
 export default function PrivacyPage() {
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
                         <p className="text-sm text-gray-500">Last Updated: December 2024</p>
 
                         <p className="mt-4">
-                            At Freepo.online, your privacy is our priority. We operate as a &quot;no-login&quot; classified ads platform,
+                            At Freepo.in, your privacy is our priority. We operate as a &quot;no-login&quot; classified ads platform,
                             meaning we collect minimal personal data while providing maximum functionality.
                         </p>
 

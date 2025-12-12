@@ -3,8 +3,8 @@ import { ArrowLeft, FileText, CheckCircle, AlertTriangle } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Terms of Service | Freepo.online",
-    description: "Terms of service for Freepo.online - India's free classifieds platform.",
+    title: "Terms of Service | Freepo.in",
+    description: "Terms of service for Freepo.in - India's free classifieds platform.",
 };
 
 export default function TermsPage() {
@@ -28,14 +28,14 @@ export default function TermsPage() {
                         <p className="text-sm text-gray-500">Effective Date: December 2024</p>
 
                         <p className="mt-4">
-                            By using Freepo.online, you agree to these Terms of Service.
+                            By using Freepo.in, you agree to these Terms of Service.
                         </p>
 
                         <h3 className="font-sans font-bold uppercase text-sm mt-8 mb-3 flex items-center gap-2">
                             <CheckCircle size={16} /> 1. Acceptance of Terms
                         </h3>
                         <p className="text-sm sm:text-base">
-                            By accessing Freepo.online, you agree to be bound by these terms.
+                            By accessing Freepo.in, you agree to be bound by these terms.
                         </p>
 
                         <h3 className="font-sans font-bold uppercase text-sm mt-8 mb-3">2. User Eligibility</h3>
@@ -65,7 +65,7 @@ export default function TermsPage() {
 
                         <h3 className="font-sans font-bold uppercase text-sm mt-8 mb-3">5. Disclaimer</h3>
                         <p className="text-sm sm:text-base">
-                            Freepo.online does NOT verify users or listings. All transactions are at your own risk.
+                            Freepo.in does NOT verify users or listings. All transactions are at your own risk.
                         </p>
 
                         <h3 className="font-sans font-bold uppercase text-sm mt-8 mb-3">6. Governing Law</h3>

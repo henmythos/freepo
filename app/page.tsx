@@ -33,59 +33,97 @@ export default function HomePage() {
     const [activeCategory, setActiveCategory] = useState<Category | "All">("All");
     const [activeCity, setActiveCity] = useState<string>("");
 
-    const [page, setPage] = useState(1);
+    // Cursor-based pagination state
+    const [nextCursor, setNextCursor] = useState<string | null>(null);
     const [hasMore, setHasMore] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+    // Initial load and filter change
     useEffect(() => {
-        fetch("/api/stats")
-            .then((r) => r.json())
-            .then(setStats)
-            .catch(console.error);
-    }, []);
-
-    useEffect(() => {
-        setPage(1);
         setHasMore(true);
+        setNextCursor(null);
         setPosts([]);
-    }, [activeCategory, activeCity, debouncedSearch]);
 
-    useEffect(() => {
-        const fetchPosts = async () => {
-            const isFirstPage = page === 1;
-            if (isFirstPage) setIsLoading(true);
-            else setIsLoadingMore(true);
-
+        // Fetch first batch
+        const fetchInitial = async () => {
+            setIsLoading(true);
             const params = new URLSearchParams();
             if (activeCity) params.set("city", activeCity);
             if (activeCategory !== "All") params.set("category", activeCategory);
             if (debouncedSearch) params.set("search", debouncedSearch);
-            params.set("page", page.toString());
+            // No cursor for first page
 
             try {
                 const res = await fetch(`/api/posts?${params.toString()}`);
-                const fetchedPosts = await res.json();
+                const fetchedPosts: Post[] = await res.json();
 
-                if (isFirstPage) {
-                    setPosts(fetchedPosts);
-                } else {
-                    setPosts((prev) => [...prev, ...fetchedPosts]);
+                setPosts(fetchedPosts);
+
+                if (fetchedPosts.length > 0) {
+                    // Set cursor to the last post's created_at
+                    const lastPost = fetchedPosts[fetchedPosts.length - 1];
+                    setNextCursor(lastPost.created_at);
                 }
 
-                if (fetchedPosts.length < 20) {
+                if (fetchedPosts.length < 12) { // 12 is default limit
                     setHasMore(false);
                 }
             } catch (error) {
                 console.error("Failed to fetch posts:", error);
             }
-
             setIsLoading(false);
-            setIsLoadingMore(false);
         };
 
-        fetchPosts();
-    }, [activeCategory, activeCity, debouncedSearch, page]);
+        fetchInitial();
+    }, [activeCategory, activeCity, debouncedSearch]);
+
+    // Load more function
+    const loadMore = async () => {
+        if (isLoadingMore || !hasMore || !nextCursor) return;
+
+        setIsLoadingMore(true);
+        const params = new URLSearchParams();
+        if (activeCity) params.set("city", activeCity);
+        if (activeCategory !== "All") params.set("category", activeCategory);
+        if (debouncedSearch) params.set("search", debouncedSearch);
+        params.set("cursor", nextCursor);
+
+        try {
+            const res = await fetch(`/api/posts?${params.toString()}`);
+            const newPosts: Post[] = await res.json();
+
+            if (newPosts.length > 0) {
+                setPosts(prev => [...prev, ...newPosts]);
+                const lastPost = newPosts[newPosts.length - 1];
+                setNextCursor(lastPost.created_at);
+            }
+
+            if (newPosts.length < 12) {
+                setHasMore(false);
+            }
+        } catch (error) {
+            console.error("Failed to load more posts:", error);
+        }
+        setIsLoadingMore(false);
+    };
+
+    // Intersection Observer for Infinite Scroll
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+                    loadMore();
+                }
+            },
+            { threshold: 0.5 }
+        );
+
+        const sentinel = document.getElementById("sentinel");
+        if (sentinel) observer.observe(sentinel);
+
+        return () => observer.disconnect();
+    }, [hasMore, isLoading, isLoadingMore, nextCursor]);
 
     return (
         <div className="min-h-screen flex flex-col max-w-7xl mx-auto px-0 md:px-6 lg:px-8 md:border-x border-gray-200 md:shadow-2xl bg-paper overflow-x-hidden">
@@ -93,7 +131,7 @@ export default function HomePage() {
             <header className="border-b-4 border-black py-4 md:py-8 text-center relative px-4">
                 <Link href="/" className="block">
                     <h1 className="font-serif text-4xl md:text-6xl font-black tracking-tighter uppercase mb-2 leading-none break-words">
-                        Freepo.online
+                        Freepo.in
                     </h1>
                 </Link>
                 <div className="absolute top-0 left-0 w-full h-1 bg-black"></div>
@@ -261,19 +299,8 @@ export default function HomePage() {
                                 ))}
 
                                 {hasMore && (
-                                    <div className="py-8 text-center">
-                                        <button
-                                            onClick={() => setPage((p) => p + 1)}
-                                            disabled={isLoadingMore}
-                                            className="bg-gray-100 hover:bg-black hover:text-white border-2 border-black px-6 py-2 font-bold uppercase text-sm tracking-widest transition-colors flex items-center gap-2 mx-auto disabled:opacity-50"
-                                        >
-                                            {isLoadingMore ? (
-                                                <Loader2 className="animate-spin" size={16} />
-                                            ) : (
-                                                <ChevronDown size={16} />
-                                            )}
-                                            Load More
-                                        </button>
+                                    <div id="sentinel" className="py-8 text-center flex justify-center">
+                                        {isLoadingMore && <Loader2 className="animate-spin" size={24} />}
                                     </div>
                                 )}
                             </>
@@ -334,6 +361,78 @@ export default function HomePage() {
                     <Plus size={24} />
                 </Link>
             </main>
+
+            {/* SEO Content Section */}
+            <section className="border-t-2 border-gray-200 py-10 px-4 bg-white">
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="font-serif text-2xl font-bold mb-6 text-center">
+                        Free Classifieds India - Post Free Ads
+                    </h2>
+
+                    <div className="grid md:grid-cols-2 gap-8 text-sm text-gray-700 leading-relaxed">
+                        <article>
+                            <h3 className="font-bold text-black mb-2">Jobs Near Me India</h3>
+                            <p className="mb-4">
+                                Find the best jobs near you in India. Whether you&apos;re looking for full-time jobs, part-time work,
+                                remote opportunities, or internships - Freepo.in connects job seekers with employers across
+                                Mumbai, Delhi, Bangalore, Hyderabad, Chennai, and 500+ cities. Post job vacancies for free!
+                            </p>
+
+                            <h3 className="font-bold text-black mb-2">Rentals & Properties India</h3>
+                            <p>
+                                Discover flats for rent, PG accommodations, houses, and commercial properties across India.
+                                List your rental property for free on Freepo.in - India&apos;s fastest-growing classifieds platform.
+                            </p>
+                        </article>
+
+                        <article>
+                            <h3 className="font-bold text-black mb-2">Buy & Sell Locally</h3>
+                            <p className="mb-4">
+                                Buy and sell used cars, bikes, electronics, furniture, and more. Freepo.in is your local
+                                classifieds marketplace - 100% free, no login required. Perfect OLX alternative for Indians!
+                            </p>
+
+                            <h3 className="font-bold text-black mb-2">City Classifieds</h3>
+                            <p>
+                                Browse classifieds by city: Hyderabad, Mumbai, Delhi, Bangalore, Chennai, Kolkata, Pune,
+                                Ahmedabad, Jaipur, and more. Find local listings near you instantly.
+                            </p>
+                        </article>
+                    </div>
+
+                    {/* City Links for SEO */}
+                    <div className="mt-8 pt-6 border-t border-gray-200">
+                        <h4 className="font-bold text-xs uppercase tracking-wider text-gray-500 mb-3">Popular Cities</h4>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                            {["Mumbai", "Delhi", "Bangalore", "Hyderabad", "Chennai", "Kolkata", "Pune", "Ahmedabad", "Jaipur", "Lucknow", "Surat", "Kanpur", "Nagpur", "Indore", "Thane", "Bhopal", "Visakhapatnam", "Patna"].map((city) => (
+                                <button
+                                    key={city}
+                                    onClick={() => setActiveCity(city)}
+                                    className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition"
+                                >
+                                    {city} Classifieds
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Category Links for SEO */}
+                    <div className="mt-6">
+                        <h4 className="font-bold text-xs uppercase tracking-wider text-gray-500 mb-3">Browse Categories</h4>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                            {CATEGORIES.map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setActiveCategory(cat)}
+                                    className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition"
+                                >
+                                    {cat} India
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
 
             {/* Footer */}
             <footer className="border-t-4 border-black py-10 bg-gray-50 px-4">
@@ -427,11 +526,11 @@ export default function HomePage() {
                     </div>
                     <div className="border-t border-gray-300 pt-6">
                         <div className="font-serif text-xl font-bold mb-2">
-                            Freepo.online
+                            Freepo.in
                         </div>
                         <p className="text-xs text-gray-500 mb-2">Made in India 🇮🇳</p>
                         <p className="text-xs font-mono text-gray-400">
-                            © 2024 freepo.online
+                            © 2024 freepo.in
                         </p>
                     </div>
                 </div>

@@ -3,8 +3,8 @@ import { ArrowLeft, Mail } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Contact Us | Freepo.online",
-    description: "Contact Freepo.online for support, feedback, or business inquiries.",
+    title: "Contact Us | Freepo.in",
+    description: "Contact Freepo.in for support, feedback, or business inquiries.",
 };
 
 export default function ContactPage() {

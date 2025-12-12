@@ -10,6 +10,7 @@ import {
     Briefcase,
 } from "lucide-react";
 import type { Metadata } from "next";
+import ImageCarousel from "@/components/ImageCarousel";
 
 interface PageProps {
     params: { id: string };
@@ -43,10 +44,10 @@ async function getPost(id: string): Promise<Post | null> {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
     const post = await getPost(params.id);
     if (!post) {
-        return { title: "Post Not Found | Freepo.online" };
+        return { title: "Post Not Found | Freepo.in" };
     }
     return {
-        title: `${post.title} - ${post.city} | Freepo.online`,
+        title: `${post.title} - ${post.city} | Freepo.in`,
         description: post.description?.substring(0, 160),
         openGraph: {
             title: `${post.title} - ${post.city}`,
@@ -65,6 +66,12 @@ export default async function PostDetailPage({ params }: PageProps) {
 
     const categoryImage = CATEGORY_IMAGES[post.category as Category] || CATEGORY_IMAGES.Community;
 
+    // Prepare images for carousel
+    const images = [
+        { src: post.image1 || "", alt: post.image1_alt || post.title },
+        { src: post.image2 || "", alt: post.image2_alt || post.title },
+    ];
+
     return (
         <div className="min-h-screen bg-paper">
             <div className="max-w-3xl mx-auto py-8 px-4">
@@ -75,41 +82,12 @@ export default async function PostDetailPage({ params }: PageProps) {
                     <ArrowLeft size={16} className="mr-1" /> Back
                 </Link>
 
-                {/* Hero Images */}
-                <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(post.image1 || post.image2) ? (
-                        <>
-                            {post.image1 && (
-                                <div className="h-64 border border-gray-200 bg-gray-100 relative overflow-hidden group">
-                                    <img
-                                        src={post.image1}
-                                        alt={post.image1_alt || post.title}
-                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                    />
-                                </div>
-                            )}
-                            {post.image2 && (
-                                <div className="h-64 border border-gray-200 bg-gray-100 relative overflow-hidden group">
-                                    <img
-                                        src={post.image2}
-                                        alt={post.image2_alt || post.title}
-                                        className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                                    />
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <div className="md:col-span-2 h-48 md:h-64 overflow-hidden border border-gray-200 bg-gray-100 relative">
-                            <img
-                                src={categoryImage}
-                                alt={post.category}
-                                className="w-full h-full object-cover opacity-90"
-                            />
-                            <div className="absolute bottom-0 left-0 bg-black text-white px-3 py-1 font-bold text-xs uppercase tracking-widest">
-                                {post.category}
-                            </div>
-                        </div>
-                    )}
+                {/* Image Carousel */}
+                <div className="mb-6">
+                    <ImageCarousel
+                        images={images}
+                        fallback={{ src: categoryImage, alt: post.category }}
+                    />
                 </div>
 
                 <div className="border-b-2 border-black pb-4 mb-6">
@@ -174,7 +152,7 @@ export default async function PostDetailPage({ params }: PageProps) {
 
                         {post.whatsapp && (
                             <a
-                                href={`https://wa.me/91${post.whatsapp}?text=${encodeURIComponent(`I am interested in your listing "${post.title}" from Freepo.online`)}`}
+                                href={`https://wa.me/91${post.whatsapp}?text=${encodeURIComponent(`I am interested in your listing "${post.title}" from Freepo.in`)}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="flex-1 bg-[#25D366] text-white text-center py-3 font-bold uppercase text-sm hover:bg-[#128c7e] flex justify-center items-center gap-2"

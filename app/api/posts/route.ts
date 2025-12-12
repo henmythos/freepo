@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/db";
 import crypto from "crypto";
+import { formatPrice, containsPhoneNumber } from "@/lib/priceUtils";
 
 // Ensure table exists
 async function ensureTable() {
@@ -62,7 +63,6 @@ async function ensureTable() {
 
 export async function GET(request: NextRequest) {
     try {
-        await ensureTable();
         const db = getDB();
 
         const { searchParams } = new URL(request.url);
@@ -70,9 +70,8 @@ export async function GET(request: NextRequest) {
         const city = searchParams.get("city");
         const category = searchParams.get("category");
         const search = searchParams.get("search");
-        const page = parseInt(searchParams.get("page") || "1");
-        const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50);
-        const offset = (page - 1) * limit;
+        const cursor = searchParams.get("cursor"); // TIMESTAMP for pagination
+        const limit = Math.min(parseInt(searchParams.get("limit") || "12"), 50); // Default 12 for grid
 
         // Single post fetch
         if (id) {
@@ -110,8 +109,14 @@ export async function GET(request: NextRequest) {
             args.push(term, term);
         }
 
-        sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?";
-        args.push(limit, offset);
+        // Cursor-based pagination (get items created BEFORE the cursor)
+        if (cursor) {
+            sql += " AND created_at < ?";
+            args.push(cursor);
+        }
+
+        sql += " ORDER BY created_at DESC LIMIT ?";
+        args.push(limit);
 
         const result = await db.execute({ sql, args });
         return NextResponse.json(result.rows);
@@ -139,6 +144,22 @@ export async function POST(request: NextRequest) {
         if (!title || !category || !city || !contact_phone || !description) {
             return NextResponse.json(
                 { error: "Missing required fields" },
+                { status: 400 }
+            );
+        }
+
+        // Block phone numbers in description (prevent misuse)
+        if (containsPhoneNumber(description)) {
+            return NextResponse.json(
+                { error: "Phone numbers are not allowed in description. Please use the Contact Phone field instead." },
+                { status: 400 }
+            );
+        }
+
+        // Also check title for phone numbers
+        if (containsPhoneNumber(title)) {
+            return NextResponse.json(
+                { error: "Phone numbers are not allowed in title." },
                 { status: 400 }
             );
         }
@@ -175,8 +196,8 @@ export async function POST(request: NextRequest) {
             contact_name = null,
             whatsapp = null,
             form_link = null,
-            salary = null,
-            price = null,
+            salary: rawSalary = null,
+            price: rawPrice = null,
             job_type = null,
             experience = null,
             education = null,
@@ -184,6 +205,10 @@ export async function POST(request: NextRequest) {
             image1 = null,
             image2 = null,
         } = body;
+
+        // Format price and salary to Indian format with ₹ symbol
+        const salary = rawSalary ? formatPrice(rawSalary) : null;
+        const price = rawPrice ? formatPrice(rawPrice) : null;
 
         // Generate ALT text
         let image1_alt = null;

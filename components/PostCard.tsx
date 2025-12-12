@@ -11,8 +11,19 @@ interface PostCardProps {
 export default function PostCard({ post }: PostCardProps) {
   return (
     <Link href={`/post/${post.id}`} className="block">
-      <article className="border-b border-gray-200 py-4 hover:bg-gray-50 transition-colors cursor-pointer">
-        <div className="flex justify-between items-start gap-4">
+      <article className="border-b border-gray-200 py-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-4">
+        {post.image1 && (
+          <div className="relative w-24 h-24 flex-shrink-0 bg-gray-100 border border-gray-200">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={post.image1}
+              alt={post.image1_alt || post.title}
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+        )}
+        <div className="flex justify-between items-start gap-4 flex-1">
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-1">
               <span className="bg-gray-100 px-2 py-0.5 font-medium uppercase tracking-wide">

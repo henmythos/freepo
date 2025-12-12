@@ -10,12 +10,12 @@ export async function GET() {
             "SELECT id, title, description, city, category, created_at FROM posts ORDER BY created_at DESC LIMIT 50"
         );
 
-        const baseUrl = "https://freepo.online";
+        const baseUrl = "https://freepo.in";
 
         let rss = `<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
- <title>Freepo.online - Latest Classifieds</title>
+ <title>Freepo.in - Latest Classifieds</title>
  <description>India's fastest free newspaper-style classifieds.</description>
  <link>${baseUrl}</link>
  <language>en-in</language>

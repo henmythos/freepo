@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://freepo.in/api/sitemap
+
+# Crawl-delay (optional, for polite crawling)
+Crawl-delay: 1
+
+# Block irrelevant paths
+Disallow: /api/posts
+Disallow: /api/upload
+Disallow: /api/stats
+Disallow: /api/cleanup
+Disallow: /api/view
+Disallow: /my-ads

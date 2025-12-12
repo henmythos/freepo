@@ -22,7 +22,10 @@ export async function GET() {
             // Table might not exist yet
         }
 
-        const baseUrl = "https://freepo.online";
+        const baseUrl = "https://freepo.in";
+
+        // Categories for sitemap
+        const categories = ["Jobs", "Properties", "Rentals", "Cars", "Bikes", "Electronics", "Services", "Buy-Sell", "Education", "Events", "Community", "Lost-Found"];
 
         let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -33,6 +36,12 @@ export async function GET() {
   <url><loc>${baseUrl}/terms</loc><priority>0.3</priority></url>
   <url><loc>${baseUrl}/safety</loc><priority>0.3</priority></url>
   <url><loc>${baseUrl}/contact</loc><priority>0.3</priority></url>`;
+
+        // Add category pages
+        categories.forEach((cat) => {
+            xml += `
+  <url><loc>${baseUrl}/?category=${encodeURIComponent(cat)}</loc><changefreq>daily</changefreq><priority>0.8</priority></url>`;
+        });
 
         citiesResult.rows.forEach((row) => {
             const cityName = row.city as string;

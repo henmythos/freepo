@@ -3,8 +3,8 @@ import { ArrowLeft, Shield, AlertTriangle, CheckCircle, CreditCard, MapPin, Phon
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Safety Guidelines | Freepo.online",
-    description: "Stay safe when buying and selling on Freepo.online. Read our safety tips.",
+    title: "Safety Guidelines | Freepo.in",
+    description: "Stay safe when buying and selling on Freepo.in. Read our safety tips.",
 };
 
 export default function SafetyPage() {
@@ -25,7 +25,7 @@ export default function SafetyPage() {
                     </div>
 
                     <div className="bg-red-50 border-l-4 border-red-500 p-4 my-6 font-sans text-sm">
-                        <strong className="text-red-700">⚠️ CRITICAL WARNING:</strong> Freepo.online <strong>NEVER</strong> asks for OTPs,
+                        <strong className="text-red-700">⚠️ CRITICAL WARNING:</strong> Freepo.in <strong>NEVER</strong> asks for OTPs,
                         UPI PINs, or payments. If someone claims to be from Freepo and asks for money, it&apos;s a SCAM!
                     </div>
 
