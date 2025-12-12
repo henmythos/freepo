@@ -192,7 +192,7 @@ export default function HomePage() {
                 {/* Center */}
                 <div className="col-span-1 lg:col-span-6">
                     {/* Mobile Actions */}
-                    <div className="lg:hidden mb-3 flex gap-2">
+                    <div className="lg:hidden mb-2 flex gap-2">
                         <Link
                             href="/post-ad"
                             className="flex-1 bg-black text-white text-center py-3 font-bold uppercase text-sm"
@@ -202,7 +202,7 @@ export default function HomePage() {
                     </div>
 
                     {/* Mobile Trending Cities Scroll */}
-                    <div className="lg:hidden mb-3 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4">
+                    <div className="lg:hidden mb-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4">
                         <div className="flex gap-2">
                             {stats.slice(0, 8).map((s) => (
                                 <button
