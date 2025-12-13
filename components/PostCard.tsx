@@ -4,13 +4,16 @@ import Link from "next/link";
 import { Post } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
+import { generateSlug } from "@/lib/slugUtils";
+
 interface PostCardProps {
   post: Post;
 }
 
 export default function PostCard({ post }: PostCardProps) {
+  const slug = generateSlug(post.title, post.city, post.category);
   return (
-    <Link href={`/post/${post.id}`} className="block">
+    <Link href={`/item/${slug}-iid-${post.id}`} className="block">
       <article className="border-b border-gray-200 py-3 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3">
         {post.image1 && (
           <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 border border-gray-200 rounded-md overflow-hidden">

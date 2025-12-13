@@ -71,3 +71,21 @@ export const CATEGORY_IMAGES: Record<Category, string> = {
     "Lost & Found":
         "https://images.unsplash.com/photo-1580130601275-54f375cd70eb?w=1200&q=80",
 };
+
+export const SEO_CATEGORIES = [
+    "jobs",
+    "cars",
+    "rentals",
+    "classifieds",
+    "electronics",
+    "services",
+];
+
+export const SEO_CITIES = [
+    "hyderabad",
+    "delhi",
+    "bangalore",
+    "chennai",
+    "mumbai",
+    "pune",
+];

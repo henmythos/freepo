@@ -1,31 +1,20 @@
 import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { getDB } from "@/lib/db";
+import { SEO_CATEGORIES, SEO_CITIES } from "@/lib/constants";
+import { generateSlug } from "@/lib/slugUtils";
+import { Post } from "@/lib/types"; // Import Post to cast properly
 
 export async function GET() {
     try {
         const db = getDB();
 
-        // Get posts
+        // Get posts with necessary fields for slug generation
         const postsResult = await db.execute(
-            "SELECT id, created_at FROM posts ORDER BY created_at DESC LIMIT 1000"
+            "SELECT id, created_at, title, city, category FROM posts ORDER BY created_at DESC LIMIT 1000"
         );
 
-        // Get cities
-        let citiesResult: { rows: Record<string, unknown>[] } = { rows: [] };
-        try {
-            const result = await db.execute(
-                "SELECT city FROM city_stats ORDER BY posts_count DESC LIMIT 50"
-            );
-            citiesResult = { rows: result.rows as Record<string, unknown>[] };
-        } catch (e) {
-            // Table might not exist yet
-        }
-
         const baseUrl = "https://freepo.in";
-
-        // Categories for sitemap
-        const categories = ["Jobs", "Properties", "Rentals", "Cars", "Bikes", "Electronics", "Services", "Buy-Sell", "Education", "Events", "Community", "Lost-Found"];
 
         let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -37,22 +26,20 @@ export async function GET() {
   <url><loc>${baseUrl}/safety</loc><priority>0.3</priority></url>
   <url><loc>${baseUrl}/contact</loc><priority>0.3</priority></url>`;
 
-        // Add category pages
-        categories.forEach((cat) => {
-            xml += `
-  <url><loc>${baseUrl}/?category=${encodeURIComponent(cat)}</loc><changefreq>daily</changefreq><priority>0.8</priority></url>`;
+        // Add SEO Category + City pages
+        SEO_CATEGORIES.forEach((cat) => {
+            SEO_CITIES.forEach((city) => {
+                xml += `
+  <url><loc>${baseUrl}/${encodeURIComponent(cat)}/${encodeURIComponent(city)}</loc><changefreq>daily</changefreq><priority>0.8</priority></url>`;
+            });
         });
 
-        citiesResult.rows.forEach((row) => {
-            const cityName = row.city as string;
-            xml += `
-  <url><loc>${baseUrl}/city/${encodeURIComponent(cityName)}</loc><changefreq>daily</changefreq><priority>0.8</priority></url>`;
-        });
-
+        // Add Item pages
         postsResult.rows.forEach((row) => {
-            const r = row as Record<string, unknown>;
+            const post = row as unknown as Post;
+            const slug = generateSlug(post.title, post.city, post.category);
             xml += `
-  <url><loc>${baseUrl}/post/${r.id}</loc><lastmod>${new Date(r.created_at as string).toISOString()}</lastmod><changefreq>never</changefreq><priority>0.7</priority></url>`;
+  <url><loc>${baseUrl}/item/${slug}-iid-${post.id}</loc><lastmod>${new Date(post.created_at).toISOString()}</lastmod><changefreq>never</changefreq><priority>0.7</priority></url>`;
         });
 
         xml += `
