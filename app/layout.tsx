@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
 
@@ -51,6 +52,11 @@ export const metadata: Metadata = {
     },
     verification: {
         google: 'your-google-verification-code', // Replace with actual code
+    },
+    icons: {
+        icon: 'https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev/FREEPO.png',
+        shortcut: 'https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev/FREEPO.png',
+        apple: 'https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev/FREEPO.png',
     },
 };
 
@@ -122,6 +128,19 @@ export default function RootLayout({
             </head>
             <body className="font-sans bg-paper text-ink">
                 {children}
+                <Script
+                    src="https://www.googletagmanager.com/gtag/js?id=G-RMCXY21ZJ3"
+                    strategy="afterInteractive"
+                />
+                <Script id="google-analytics" strategy="afterInteractive">
+                    {`
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+
+                        gtag('config', 'G-RMCXY21ZJ3');
+                    `}
+                </Script>
             </body>
         </html>
     );
