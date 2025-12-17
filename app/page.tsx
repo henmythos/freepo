@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Post, CityStats, Category } from "@/lib/types";
-import { CATEGORIES, CATEGORY_IMAGES } from "@/lib/constants";
+import { CATEGORIES, CATEGORY_IMAGES, TOP_CITIES } from "@/lib/constants";
 import PostCard from "@/components/PostCard";
+import GridPostCard from "@/components/GridPostCard";
 import {
     Search,
     Plus,
@@ -39,11 +40,28 @@ export default function HomePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+    // Feature 1: Client-Side City Filter
+    const [selectedCity, setSelectedCity] = useState("All");
+
+    // Feature 2: Grid View Categories
+    const GRID_CATEGORIES = ["cars", "bikes", "properties", "rentals", "buy/sell", "electronics"];
+    const isGridView = GRID_CATEGORIES.includes(activeCategory.toLowerCase());
+
+    // Filter posts client-side based on the selected dropdown city
+    const filteredPosts = selectedCity === "All"
+        ? posts
+        : posts.filter(post => post.city === selectedCity);
+
+
     // Initial load and filter change
     useEffect(() => {
         setHasMore(true);
         setNextCursor(null);
         setPosts([]);
+
+        // Reset client-side filter when category changes, but keep it if just sorting
+        // Actually, user might want to keep "Hyderabad" selected while switching categories.
+        // So we won't reset selectedCity here automatically unless desired. 
 
         // Fetch first batch
         const fetchInitial = async () => {
@@ -107,8 +125,6 @@ export default function HomePage() {
         }
         setIsLoadingMore(false);
     };
-
-    // Load more is now triggered by button click, not auto-scroll
 
     return (
         <div className="min-h-screen flex flex-col max-w-7xl mx-auto px-0 md:px-6 lg:px-8 md:border-x border-gray-200 md:shadow-2xl bg-paper overflow-x-hidden">
@@ -255,9 +271,28 @@ export default function HomePage() {
                             ))}
                         </div>
 
+                        {/* Client-Side City Dropdown Filter */}
+                        <div className="flex items-center gap-2">
+                            <div className="relative inline-block text-left">
+                                <select
+                                    value={selectedCity}
+                                    onChange={(e) => setSelectedCity(e.target.value)}
+                                    className="appearance-none bg-white font-bold text-xs uppercase tracking-wider pl-3 pr-8 py-1.5 border border-gray-300 rounded hover:border-black focus:outline-none cursor-pointer"
+                                >
+                                    <option value="All">📍 All Cities</option>
+                                    {TOP_CITIES.map(city => (
+                                        <option key={city} value={city}>{city}</option>
+                                    ))}
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <ChevronDown size={14} />
+                                </div>
+                            </div>
+                        </div>
+
                         {activeCity && (
                             <div className="flex items-center gap-2 text-sm">
-                                <span className="font-bold">Filtering by:</span>
+                                <span className="font-bold">Server Filter:</span>
                                 <span className="bg-gray-200 px-2 py-1 rounded flex items-center gap-1">
                                     {activeCity}
                                     <button
@@ -277,11 +312,21 @@ export default function HomePage() {
                             <div className="flex justify-center py-10">
                                 <Loader2 className="animate-spin" size={30} />
                             </div>
-                        ) : posts.length > 0 ? (
+                        ) : filteredPosts.length > 0 ? (
                             <>
-                                {posts.map((post) => (
-                                    <PostCard key={post.id} post={post} />
-                                ))}
+                                {isGridView ? (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                        {filteredPosts.map((post) => (
+                                            <GridPostCard key={post.id} post={post} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-0">
+                                        {filteredPosts.map((post) => (
+                                            <PostCard key={post.id} post={post} />
+                                        ))}
+                                    </div>
+                                )}
 
                                 {hasMore && (
                                     <div className="py-6 text-center">
