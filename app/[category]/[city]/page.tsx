@@ -85,6 +85,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
 }
 
+import GridPostCard from "@/components/GridPostCard";
+
+const GRID_CATEGORIES = [
+    "cars",
+    "bikes",
+    "properties",
+    "rentals",
+    "buy-sell",
+    "electronics",
+];
+
+import { ArrowLeft } from "lucide-react";
+
 export default async function SEOCategoryPage({ params }: PageProps) {
     const { category, city } = params;
 
@@ -95,6 +108,7 @@ export default async function SEOCategoryPage({ params }: PageProps) {
     const posts = await getPosts(category, city);
     const cityTitle = titleCase(city);
     const categoryTitle = titleCase(category);
+    const isGridView = GRID_CATEGORIES.includes(category.toLowerCase());
 
     // Dynamic SEO Intro Text
     const introText = `Freepo allows free ${category} posting in ${cityTitle} for everyone. Find the latest ${category} in ${cityTitle} including private listings, verified options, and more across areas in ${cityTitle}.`;
@@ -102,6 +116,13 @@ export default async function SEOCategoryPage({ params }: PageProps) {
     return (
         <div className="min-h-screen bg-gray-50">
             <div className="max-w-3xl mx-auto py-8 px-4">
+                <Link
+                    href="/"
+                    className="mb-6 flex items-center text-sm font-bold uppercase hover:underline text-gray-500"
+                >
+                    <ArrowLeft size={16} className="mr-1" /> Back to Home
+                </Link>
+
                 <h1 className="font-serif text-3xl font-bold text-ink mb-4">
                     {categoryTitle} in {cityTitle}
                 </h1>
@@ -111,13 +132,21 @@ export default async function SEOCategoryPage({ params }: PageProps) {
                 </p>
 
                 {posts.length > 0 ? (
-                    <div className="space-y-4">
-                        {posts.map((post) => (
-                            <div key={post.id} className="bg-white rounded-lg shadow-sm border border-gray-200 px-4">
-                                <PostCard post={post} />
-                            </div>
-                        ))}
-                    </div>
+                    isGridView ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {posts.map((post) => (
+                                <GridPostCard key={post.id} post={post} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {posts.map((post) => (
+                                <div key={post.id} className="bg-white rounded-lg shadow-sm border border-gray-200 px-4">
+                                    <PostCard post={post} />
+                                </div>
+                            ))}
+                        </div>
+                    )
                 ) : (
                     <div className="text-center py-12 bg-white rounded-lg border border-dashed border-gray-300">
                         <p className="text-gray-500 mb-4">No {category} found in {cityTitle} yet.</p>

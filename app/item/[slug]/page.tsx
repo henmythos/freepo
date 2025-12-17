@@ -161,16 +161,18 @@ export default async function ItemDetailPage({ params }: PageProps) {
                     </h3>
 
                     <div className="flex flex-col md:flex-row gap-4">
-                        <a
-                            href={`tel:${post.contact_phone}`}
-                            className="flex-1 bg-black text-white text-center py-3 font-bold uppercase text-sm hover:bg-gray-800 flex justify-center items-center gap-2"
-                        >
-                            <Phone size={16} /> Call Now
-                        </a>
-
-                        {post.whatsapp && (
+                        {(post.contact_preference === "call" || !post.contact_preference || post.contact_preference === "both") && (
                             <a
-                                href={`https://wa.me/91${post.whatsapp}?text=${encodeURIComponent(`I am interested in your listing "${post.title}" from Freepo.in`)}`}
+                                href={`tel:${post.contact_phone}`}
+                                className="flex-1 bg-black text-white text-center py-3 font-bold uppercase text-sm hover:bg-gray-800 flex justify-center items-center gap-2"
+                            >
+                                <Phone size={16} /> Call Now
+                            </a>
+                        )}
+
+                        {(post.contact_preference === "whatsapp" || !post.contact_preference || post.contact_preference === "both") && (
+                            <a
+                                href={`https://wa.me/91${post.whatsapp || post.contact_phone}?text=${encodeURIComponent(`I am interested in your listing "${post.title}" from Freepo.in`)}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="flex-1 bg-[#25D366] text-white text-center py-3 font-bold uppercase text-sm hover:bg-[#128c7e] flex justify-center items-center gap-2"

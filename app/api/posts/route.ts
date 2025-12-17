@@ -38,7 +38,8 @@ async function ensureTable() {
         "image1 TEXT",
         "image2 TEXT",
         "image1_alt TEXT",
-        "image2_alt TEXT"
+        "image2_alt TEXT",
+        "contact_preference TEXT DEFAULT 'both'"
     ];
 
     for (const col of columnsToAdd) {
@@ -204,6 +205,9 @@ export async function POST(request: NextRequest) {
             company_name = null,
             image1 = null,
             image2 = null,
+            image1_alt,
+            image2_alt,
+            contact_preference = "both"
         } = body;
 
         // Format price and salary to Indian format with ₹ symbol
@@ -211,10 +215,10 @@ export async function POST(request: NextRequest) {
         const price = rawPrice ? formatPrice(rawPrice) : null;
 
         // Generate ALT text
-        let image1_alt = null;
-        let image2_alt = null;
-        if (image1) image1_alt = `${title} - ${category} in ${city} (Image 1)`;
-        if (image2) image2_alt = `${title} - ${category} in ${city} (Image 2)`;
+        let image1_alt_final = null;
+        let image2_alt_final = null;
+        if (image1) image1_alt_final = `${title} - ${category} in ${city} (Image 1)`;
+        if (image2) image2_alt_final = `${title} - ${category} in ${city} (Image 2)`;
 
         // Insert post
         await db.execute({
@@ -223,9 +227,9 @@ export async function POST(request: NextRequest) {
           id, title, category, city, description, 
           contact_name, contact_phone, whatsapp, form_link, 
           salary, price, job_type, experience, education, company_name, 
-          expires_at, image1, image2, image1_alt, image2_alt
+          expires_at, image1, image2, image1_alt, image2_alt, contact_preference
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '+30 days'), ?, ?, ?, ?);
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '+30 days'), ?, ?, ?, ?, ?);
       `,
             args: [
                 id,
@@ -245,8 +249,9 @@ export async function POST(request: NextRequest) {
                 company_name,
                 image1,
                 image2,
-                image1_alt,
-                image2_alt
+                image1_alt_final,
+                image2_alt_final,
+                contact_preference
             ],
         });
 

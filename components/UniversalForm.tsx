@@ -418,7 +418,6 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
         </div>
       )}
 
-      {/* Contact */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block font-bold text-sm uppercase mb-2">
@@ -450,6 +449,47 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
             className="w-full border-2 border-black p-3 font-sans"
             maxLength={10}
           />
+        </div>
+      </div>
+
+      <div>
+        <label className="block font-bold text-sm uppercase mb-2">
+          Preferred Contact Method *
+        </label>
+        <div className="flex flex-col sm:flex-row gap-4">
+          <label className="flex items-center gap-2 cursor-pointer border border-gray-300 p-3 rounded hover:bg-gray-50 flex-1">
+            <input
+              type="radio"
+              name="contact_preference"
+              value="both"
+              checked={!formData.contact_preference || formData.contact_preference === "both"}
+              onChange={handleChange}
+              className="accent-black w-4 h-4"
+            />
+            <span className="text-sm font-medium">Any (Call + WhatsApp)</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer border border-gray-300 p-3 rounded hover:bg-gray-50 flex-1">
+            <input
+              type="radio"
+              name="contact_preference"
+              value="call"
+              checked={formData.contact_preference === "call"}
+              onChange={handleChange}
+              className="accent-black w-4 h-4"
+            />
+            <span className="text-sm font-medium">Call Only</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer border border-gray-300 p-3 rounded hover:bg-gray-50 flex-1">
+            <input
+              type="radio"
+              name="contact_preference"
+              value="whatsapp"
+              checked={formData.contact_preference === "whatsapp"}
+              onChange={handleChange}
+              className="accent-black w-4 h-4"
+            />
+            <span className="text-sm font-medium">WhatsApp Only</span>
+          </label>
         </div>
       </div>
 

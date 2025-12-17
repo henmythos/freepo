@@ -36,6 +36,7 @@ export interface Post {
     image2?: string;
     image1_alt?: string;
     image2_alt?: string;
+    contact_preference?: "call" | "whatsapp" | "both";
 }
 
 export interface CreatePostRequest {
@@ -58,6 +59,7 @@ export interface CreatePostRequest {
     image2?: string;
     image1_alt?: string;
     image2_alt?: string;
+    contact_preference?: "call" | "whatsapp" | "both";
 }
 
 export interface CityStats {
