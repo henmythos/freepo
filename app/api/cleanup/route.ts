@@ -48,14 +48,6 @@ export async function GET() {
         }
 
         // 3. Delete from DB
-        const ids = rows.map((r) => r.id).map(id => `'${id}'`).join(",");
-        // Use a safe query instead of raw string injection if possible, but for IDs list it's often easier to do IN check
-        // Or delete one by one if batch isn't supported easily. 
-        // LibSQL support IN clause.
-
-        // Actually, let's use the original "DELETE FROM posts WHERE ..." but we need to match the ones we just processed to be safe in case of race conditions, 
-        // though typically "expires_at < now" is fairly stable.
-        // Let's stick to the original logic but just ensure we delete what we found.
 
 
 

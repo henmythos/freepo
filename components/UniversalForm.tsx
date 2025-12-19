@@ -101,8 +101,8 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    if (uploadedImages.length + files.length > 2) {
-      alert("You can only upload a maximum of 2 images.");
+    if (uploadedImages.length + files.length > 5) {
+      alert("You can only upload a maximum of 5 images.");
       return;
     }
 
@@ -163,6 +163,9 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
         ...formData,
         image1: uploadedImages[0] || undefined,
         image2: uploadedImages[1] || undefined,
+        image3: uploadedImages[2] || undefined,
+        image4: uploadedImages[3] || undefined,
+        image5: uploadedImages[4] || undefined,
       };
       await onSubmit(finalData as CreatePostRequest);
     } catch (error) {
@@ -220,13 +223,13 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
       {/* Image Upload */}
       <div>
         <label className="block font-bold text-sm uppercase mb-2">
-          Images (Optional - Max 2)
+          Images (Optional - Max 5)
         </label>
 
         <div className="flex flex-wrap gap-4 mb-3">
           {uploadedImages.map((url, index) => (
-            <div key={url} className="relative w-24 h-24 border border-gray-200 rounded overflow-hidden group">
-              <img src={url} alt="Preview" className="w-full h-full object-cover" />
+            <div key={url} className="relative w-24 h-24 border border-gray-200 rounded overflow-hidden group bg-[#f2f2f2]">
+              <img src={url} alt="Preview" className="w-full h-full object-contain" />
               <button
                 type="button"
                 onClick={() => removeImage(index)}
@@ -237,7 +240,7 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
             </div>
           ))}
 
-          {uploadedImages.length < 2 && (
+          {uploadedImages.length < 5 && (
             <label className={`w-24 h-24 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-black transition-colors ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
               {isUploading ? (
                 <Loader2 className="animate-spin text-gray-400" size={24} />
@@ -301,6 +304,30 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
         </select>
       </div>
 
+      {/* Locality (Optional) */}
+      <div>
+        <label className="block font-bold text-sm uppercase mb-2">
+          Locality (Optional)
+        </label>
+        <input
+          type="text"
+          name="locality"
+          value={formData.locality || ""}
+          onChange={handleChange}
+          placeholder="e.g. Koti, Gachibowli, Nampally"
+          className="w-full border-2 border-black p-3 font-sans"
+          maxLength={60}
+          onBlur={(e) => {
+            // Auto-capitalize on blur
+            const val = e.target.value;
+            if (val) {
+              const formatted = val.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+              setFormData((prev) => ({ ...prev, locality: formatted }));
+            }
+          }}
+        />
+      </div>
+
       {/* Description */}
       <div>
         <label className="block font-bold text-sm uppercase mb-2">
@@ -318,105 +345,109 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
       </div>
 
       {/* Job-specific fields */}
-      {isJobCategory && (
-        <>
+      {
+        isJobCategory && (
+          <>
+            <div>
+              <label className="block font-bold text-sm uppercase mb-2">
+                Company Name
+              </label>
+              <input
+                type="text"
+                name="company_name"
+                value={formData.company_name || ""}
+                onChange={handleChange}
+                placeholder="Your company name (or 'Confidential')"
+                className="w-full border-2 border-black p-3 font-sans"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-bold text-sm uppercase mb-2">
+                  Job Type
+                </label>
+                <select
+                  name="job_type"
+                  value={formData.job_type || ""}
+                  onChange={handleChange}
+                  className="w-full border-2 border-black p-3 bg-white font-sans"
+                >
+                  <option value="">Select Type</option>
+                  {JOB_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-sm uppercase mb-2">
+                  Salary
+                </label>
+                <input
+                  type="text"
+                  name="salary"
+                  value={formData.salary || ""}
+                  onChange={handleChange}
+                  placeholder="e.g. ₹25,000 - ₹35,000/month"
+                  className="w-full border-2 border-black p-3 font-sans"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block font-bold text-sm uppercase mb-2">
+                  Experience Required
+                </label>
+                <input
+                  type="text"
+                  name="experience"
+                  value={formData.experience || ""}
+                  onChange={handleChange}
+                  placeholder="e.g. 2-3 years"
+                  className="w-full border-2 border-black p-3 font-sans"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-sm uppercase mb-2">
+                  Education Required
+                </label>
+                <input
+                  type="text"
+                  name="education"
+                  value={formData.education || ""}
+                  onChange={handleChange}
+                  placeholder="e.g. Graduate / Any"
+                  className="w-full border-2 border-black p-3 font-sans"
+                />
+              </div>
+            </div>
+          </>
+        )
+      }
+
+      {/* Price field */}
+      {
+        isPriceCategory && (
           <div>
             <label className="block font-bold text-sm uppercase mb-2">
-              Company Name
+              Price
             </label>
             <input
               type="text"
-              name="company_name"
-              value={formData.company_name || ""}
+              name="price"
+              value={formData.price || ""}
               onChange={handleChange}
-              placeholder="Your company name (or 'Confidential')"
+              placeholder="e.g. ₹45,000 or ₹15,000/month"
               className="w-full border-2 border-black p-3 font-sans"
             />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-bold text-sm uppercase mb-2">
-                Job Type
-              </label>
-              <select
-                name="job_type"
-                value={formData.job_type || ""}
-                onChange={handleChange}
-                className="w-full border-2 border-black p-3 bg-white font-sans"
-              >
-                <option value="">Select Type</option>
-                {JOB_TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block font-bold text-sm uppercase mb-2">
-                Salary
-              </label>
-              <input
-                type="text"
-                name="salary"
-                value={formData.salary || ""}
-                onChange={handleChange}
-                placeholder="e.g. ₹25,000 - ₹35,000/month"
-                className="w-full border-2 border-black p-3 font-sans"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block font-bold text-sm uppercase mb-2">
-                Experience Required
-              </label>
-              <input
-                type="text"
-                name="experience"
-                value={formData.experience || ""}
-                onChange={handleChange}
-                placeholder="e.g. 2-3 years"
-                className="w-full border-2 border-black p-3 font-sans"
-              />
-            </div>
-
-            <div>
-              <label className="block font-bold text-sm uppercase mb-2">
-                Education Required
-              </label>
-              <input
-                type="text"
-                name="education"
-                value={formData.education || ""}
-                onChange={handleChange}
-                placeholder="e.g. Graduate / Any"
-                className="w-full border-2 border-black p-3 font-sans"
-              />
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Price field */}
-      {isPriceCategory && (
-        <div>
-          <label className="block font-bold text-sm uppercase mb-2">
-            Price
-          </label>
-          <input
-            type="text"
-            name="price"
-            value={formData.price || ""}
-            onChange={handleChange}
-            placeholder="e.g. ₹45,000 or ₹15,000/month"
-            className="w-full border-2 border-black p-3 font-sans"
-          />
-        </div>
-      )}
+        )
+      }
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -520,6 +551,6 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
       <p className="text-xs text-gray-500 text-center">
         By posting, you agree to our Terms of Service. One post per phone number every 30 days.
       </p>
-    </form>
+    </form >
   );
 }

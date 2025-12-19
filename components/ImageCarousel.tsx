@@ -17,11 +17,11 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
     // If no valid images, show fallback
     if (validImages.length === 0 && fallback) {
         return (
-            <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-gray-100">
+            <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-[#f2f2f2]">
                 <img
                     src={fallback.src}
                     alt={fallback.alt}
-                    className="w-full h-full object-cover opacity-90"
+                    className="w-full h-full object-contain opacity-90"
                 />
                 <div className="absolute bottom-0 left-0 bg-black text-white px-3 py-1 font-bold text-xs uppercase tracking-widest">
                     {fallback.alt}
@@ -33,11 +33,11 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
     // Single image - no carousel needed
     if (validImages.length === 1) {
         return (
-            <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-gray-100">
+            <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-[#f2f2f2]">
                 <img
                     src={validImages[0].src}
                     alt={validImages[0].alt}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                 />
             </div>
         );
@@ -56,7 +56,7 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
     };
 
     return (
-        <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-gray-100 group">
+        <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-[#f2f2f2] group">
             {/* Main Image */}
             <div className="relative w-full h-full">
                 {validImages.map((img, index) => (
@@ -68,7 +68,7 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
                         <img
                             src={img.src}
                             alt={img.alt}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                         />
                     </div>
                 ))}
@@ -97,8 +97,8 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
                         key={index}
                         onClick={() => goToSlide(index)}
                         className={`w-2.5 h-2.5 rounded-full transition-all ${index === currentIndex
-                                ? "bg-white scale-110"
-                                : "bg-white/50 hover:bg-white/75"
+                            ? "bg-white scale-110"
+                            : "bg-white/50 hover:bg-white/75"
                             }`}
                         aria-label={`Go to image ${index + 1}`}
                     />

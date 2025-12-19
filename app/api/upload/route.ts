@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
         if (files.length === 0) {
             return NextResponse.json({ error: "No files uploaded" }, { status: 400 });
         }
-        if (files.length > 2) {
-            return NextResponse.json({ error: "Max 2 images allowed" }, { status: 400 });
+        if (files.length > 5) {
+            return NextResponse.json({ error: "Max 5 images allowed" }, { status: 400 });
         }
 
         const uploadedUrls: string[] = [];

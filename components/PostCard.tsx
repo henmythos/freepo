@@ -16,12 +16,12 @@ export default function PostCard({ post }: PostCardProps) {
     <Link href={`/item/${slug}-iid-${post.id}`} className="block">
       <article className="border-b border-gray-200 py-3 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3">
         {post.image1 && (
-          <div className="relative w-20 h-20 flex-shrink-0 bg-gray-100 border border-gray-200 rounded-md overflow-hidden">
+          <div className="relative w-20 h-20 flex-shrink-0 bg-[#f2f2f2] border border-gray-200 rounded-md overflow-hidden">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={post.image1}
               alt={post.image1_alt || post.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
               loading="lazy"
             />
           </div>
@@ -32,7 +32,7 @@ export default function PostCard({ post }: PostCardProps) {
               <span className="bg-gray-100 px-1.5 py-0.5 font-medium uppercase tracking-wide text-[10px]">
                 {post.category}
               </span>
-              <span>{post.city}</span>
+              <span>{post.locality ? `${post.locality}, ${post.city}` : post.city}</span>
               <span>•</span>
               <span>
                 {formatDistanceToNow(new Date(post.created_at), {

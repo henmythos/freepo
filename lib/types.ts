@@ -34,8 +34,15 @@ export interface Post {
     hash_value?: string;
     image1?: string;
     image2?: string;
+    image3?: string;
+    image4?: string;
+    image5?: string;
     image1_alt?: string;
     image2_alt?: string;
+    image3_alt?: string;
+    image4_alt?: string;
+    image5_alt?: string;
+    locality?: string;
     contact_preference?: "call" | "whatsapp" | "both";
 }
 
@@ -44,6 +51,7 @@ export interface CreatePostRequest {
     description: string;
     category: Category;
     city: string;
+    locality?: string;
     contact_phone: string;
     contact_name?: string;
     whatsapp?: string;
@@ -57,8 +65,14 @@ export interface CreatePostRequest {
     _honey?: string;
     image1?: string;
     image2?: string;
+    image3?: string;
+    image4?: string;
+    image5?: string;
     image1_alt?: string;
     image2_alt?: string;
+    image3_alt?: string;
+    image4_alt?: string;
+    image5_alt?: string;
     contact_preference?: "call" | "whatsapp" | "both";
 }
 

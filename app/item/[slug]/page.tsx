@@ -85,6 +85,9 @@ export default async function ItemDetailPage({ params }: PageProps) {
     const images = [
         { src: post.image1 || "", alt: post.image1_alt || post.title },
         { src: post.image2 || "", alt: post.image2_alt || post.title },
+        { src: post.image3 || "", alt: post.image3_alt || post.title },
+        { src: post.image4 || "", alt: post.image4_alt || post.title },
+        { src: post.image5 || "", alt: post.image5_alt || post.title },
     ];
 
     return (

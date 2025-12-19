@@ -28,8 +28,15 @@ async function ensureTable() {
       views INTEGER DEFAULT 0,
       image1 TEXT,
       image2 TEXT,
+      image3 TEXT,
+      image4 TEXT,
+      image5 TEXT,
       image1_alt TEXT,
-      image2_alt TEXT
+      image2_alt TEXT,
+      image3_alt TEXT,
+      image4_alt TEXT,
+      image5_alt TEXT,
+      locality TEXT
     );
   `);
 
@@ -37,9 +44,16 @@ async function ensureTable() {
     const columnsToAdd = [
         "image1 TEXT",
         "image2 TEXT",
+        "image3 TEXT",
+        "image4 TEXT",
+        "image5 TEXT",
         "image1_alt TEXT",
         "image2_alt TEXT",
-        "contact_preference TEXT DEFAULT 'both'"
+        "image3_alt TEXT",
+        "image4_alt TEXT",
+        "image5_alt TEXT",
+        "contact_preference TEXT DEFAULT 'both'",
+        "locality TEXT"
     ];
 
     for (const col of columnsToAdd) {
@@ -59,7 +73,7 @@ async function ensureTable() {
     );
   `);
 
-    console.log("FREEPO DB TABLES READY");
+
 }
 
 export async function GET(request: NextRequest) {
@@ -141,7 +155,17 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate required fields
-        const { title, category, city, contact_phone, description } = body;
+        const {
+            title,
+            category,
+            city,
+            contact_phone,
+            description,
+            locality: rawLocality = null
+        } = body;
+
+        const locality = rawLocality ? rawLocality.trim() : null;
+
         if (!title || !category || !city || !contact_phone || !description) {
             return NextResponse.json(
                 { error: "Missing required fields" },
@@ -205,8 +229,9 @@ export async function POST(request: NextRequest) {
             company_name = null,
             image1 = null,
             image2 = null,
-            image1_alt,
-            image2_alt,
+            image3 = null,
+            image4 = null,
+            image5 = null,
             contact_preference = "both"
         } = body;
 
@@ -217,8 +242,15 @@ export async function POST(request: NextRequest) {
         // Generate ALT text
         let image1_alt_final = null;
         let image2_alt_final = null;
+        let image3_alt_final = null;
+        let image4_alt_final = null;
+        let image5_alt_final = null;
+
         if (image1) image1_alt_final = `${title} - ${category} in ${city} (Image 1)`;
         if (image2) image2_alt_final = `${title} - ${category} in ${city} (Image 2)`;
+        if (image3) image3_alt_final = `${title} - ${category} in ${city} (Image 3)`;
+        if (image4) image4_alt_final = `${title} - ${category} in ${city} (Image 4)`;
+        if (image5) image5_alt_final = `${title} - ${category} in ${city} (Image 5)`;
 
         // Insert post
         await db.execute({
@@ -227,9 +259,17 @@ export async function POST(request: NextRequest) {
           id, title, category, city, description, 
           contact_name, contact_phone, whatsapp, form_link, 
           salary, price, job_type, experience, education, company_name, 
-          expires_at, image1, image2, image1_alt, image2_alt, contact_preference
+          expires_at, image1, image2, image3, image4, image5, 
+          image1_alt, image2_alt, image3_alt, image4_alt, image5_alt, 
+          contact_preference
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now', '+30 days'), ?, ?, ?, ?, ?);
+        VALUES (
+          ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
+          datetime('now', '+30 days'), 
+          ?, ?, ?, ?, ?, 
+          ?, ?, ?, ?, ?, 
+          ?
+        );
       `,
             args: [
                 id,
@@ -249,8 +289,14 @@ export async function POST(request: NextRequest) {
                 company_name,
                 image1,
                 image2,
+                image3,
+                image4,
+                image5,
                 image1_alt_final,
                 image2_alt_final,
+                image3_alt_final,
+                image4_alt_final,
+                image5_alt_final,
                 contact_preference
             ],
         });
@@ -261,7 +307,6 @@ export async function POST(request: NextRequest) {
             args: [city],
         }).catch((e) => console.error("[STATS ERROR]", e.message));
 
-        console.log(`[POST SUCCESS] ID: ${id}, City: ${city}, Category: ${category}`);
         return NextResponse.json({ success: true, id });
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Unknown error";
@@ -318,6 +363,9 @@ export async function DELETE(request: NextRequest) {
         // Delete Images
         await deleteImage(post.image1);
         await deleteImage(post.image2);
+        await deleteImage(post.image3);
+        await deleteImage(post.image4);
+        await deleteImage(post.image5);
 
         // Delete Post
         await db.execute({

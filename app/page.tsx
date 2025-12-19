@@ -42,15 +42,25 @@ export default function HomePage() {
 
     // Feature 1: Client-Side City Filter
     const [selectedCity, setSelectedCity] = useState("All");
+    const [localityFilter, setLocalityFilter] = useState(""); // Locality search
 
     // Feature 2: Grid View Categories
     const GRID_CATEGORIES = ["cars", "bikes", "properties", "rentals", "buy/sell", "electronics"];
     const isGridView = GRID_CATEGORIES.includes(activeCategory.toLowerCase());
 
     // Filter posts client-side based on the selected dropdown city
-    const filteredPosts = selectedCity === "All"
-        ? posts
-        : posts.filter(post => post.city === selectedCity);
+    const filteredPosts = posts.filter(post => {
+        // 1. City Filter
+        if (selectedCity !== "All" && post.city !== selectedCity) return false;
+
+        // 2. Locality Filter (only if typed)
+        if (localityFilter) {
+            const loc = post.locality?.toLowerCase() || "";
+            if (!loc.includes(localityFilter.toLowerCase())) return false;
+        }
+
+        return true;
+    });
 
 
     // Initial load and filter change
@@ -58,6 +68,7 @@ export default function HomePage() {
         setHasMore(true);
         setNextCursor(null);
         setPosts([]);
+        setLocalityFilter(""); // Reset locality when filters change
 
         // Reset client-side filter when category changes, but keep it if just sorting
         // Actually, user might want to keep "Hyderabad" selected while switching categories.
@@ -74,21 +85,27 @@ export default function HomePage() {
 
             try {
                 const res = await fetch(`/api/posts?${params.toString()}`);
-                const fetchedPosts: Post[] = await res.json();
+                const fetchedPosts = await res.json();
 
-                setPosts(fetchedPosts);
+                if (Array.isArray(fetchedPosts)) {
+                    setPosts(fetchedPosts);
 
-                if (fetchedPosts.length > 0) {
-                    // Set cursor to the last post's created_at
-                    const lastPost = fetchedPosts[fetchedPosts.length - 1];
-                    setNextCursor(lastPost.created_at);
-                }
+                    if (fetchedPosts.length > 0) {
+                        // Set cursor to the last post's created_at
+                        const lastPost = fetchedPosts[fetchedPosts.length - 1];
+                        setNextCursor(lastPost.created_at);
+                    }
 
-                if (fetchedPosts.length < 20) { // 20 is default limit
-                    setHasMore(false);
+                    if (fetchedPosts.length < 20) { // 20 is default limit
+                        setHasMore(false);
+                    }
+                } else {
+                    console.error("API returned non-array:", fetchedPosts);
+                    setPosts([]);
                 }
             } catch (error) {
                 console.error("Failed to fetch posts:", error);
+                setPosts([]);
             }
             setIsLoading(false);
         };
@@ -271,7 +288,6 @@ export default function HomePage() {
                             ))}
                         </div>
 
-                        {/* Client-Side City Dropdown Filter */}
                         <div className="flex items-center gap-2">
                             <div className="relative inline-block text-left">
                                 <select
@@ -288,6 +304,15 @@ export default function HomePage() {
                                     <ChevronDown size={14} />
                                 </div>
                             </div>
+
+                            {/* Locality Filter Input */}
+                            <input
+                                type="text"
+                                placeholder="Search locality..."
+                                value={localityFilter}
+                                onChange={(e) => setLocalityFilter(e.target.value)}
+                                className="px-3 py-1.5 border border-gray-300 rounded text-xs focus:outline-none focus:border-black font-sans min-w-[140px]"
+                            />
                         </div>
 
                         {activeCity && (

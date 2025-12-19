@@ -17,13 +17,13 @@ export default function GridPostCard({ post }: GridPostCardProps) {
         <Link href={`/item/${slug}-iid-${post.id}`} className="block h-full">
             <article className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col bg-white">
                 {/* Image Section */}
-                <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
+                <div className="relative aspect-[4/3] bg-[#f2f2f2] overflow-hidden">
                     {post.image1 ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
                             src={post.image1}
                             alt={post.image1_alt || post.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                             loading="lazy"
                         />
                     ) : (
@@ -46,7 +46,7 @@ export default function GridPostCard({ post }: GridPostCardProps) {
                         </h2>
                         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
                             <MapPin size={12} />
-                            <span className="truncate">{post.city}</span>
+                            <span className="truncate">{post.locality ? `${post.locality}, ${post.city}` : post.city}</span>
                         </div>
                     </div>
 
