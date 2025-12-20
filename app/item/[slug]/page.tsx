@@ -8,10 +8,12 @@ import {
     Phone,
     MessageCircle,
     Briefcase,
+    Eye,
 } from "lucide-react";
 import type { Metadata } from "next";
 import ImageCarousel from "@/components/ImageCarousel";
 import ShareButton from "@/components/ShareButton";
+import TrackView from "@/components/TrackView";
 import { extractIdFromSlug } from "@/lib/slugUtils";
 
 interface PageProps {
@@ -93,6 +95,9 @@ export default async function ItemDetailPage({ params }: PageProps) {
 
     return (
         <div className="min-h-screen bg-paper">
+            {/* Track this view in localStorage for Recently Viewed */}
+            <TrackView id={post.id} title={post.title} slug={params.slug} />
+
             <div className="max-w-3xl mx-auto py-8 px-4">
                 <Link
                     href={`/?city=${encodeURIComponent(post.city)}&category=${encodeURIComponent(post.category)}`}
@@ -116,6 +121,9 @@ export default async function ItemDetailPage({ params }: PageProps) {
                     <div className="flex flex-wrap gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">
                         <span>{post.city}</span> •{" "}
                         <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                        {post.views > 0 && (
+                            <span className="flex items-center gap-1">• <Eye size={12} /> {post.views} views</span>
+                        )}
                     </div>
 
                     <h1 className="font-serif text-2xl md:text-4xl font-bold text-ink leading-tight mb-4 break-words">
@@ -190,6 +198,15 @@ export default async function ItemDetailPage({ params }: PageProps) {
                             </a>
                         )}
 
+                        <a
+                            href={`https://wa.me/?text=${encodeURIComponent(`Check this out on Freepo.in: ${post.title} - https://freepo.in/item/${params.slug}`)}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex-1 md:flex-none border border-[#25D366] text-[#25D366] text-center py-3 font-bold uppercase text-sm hover:bg-[#25D366] hover:text-white flex justify-center items-center gap-2 transition-colors"
+                        >
+                            <MessageCircle size={16} /> Share
+                        </a>
+
                         <div className="flex-1 md:flex-none md:w-32">
                             <ShareButton
                                 title={`Check out this ${post.category} on Freepo.in: ${post.title}`}
@@ -197,9 +214,17 @@ export default async function ItemDetailPage({ params }: PageProps) {
                             />
                         </div>
                     </div>
-                    <p className="text-xs text-gray-400 mt-2 text-center">
-                        Mention &quot;Freepo&quot; when calling to get a better response.
-                    </p>
+                    <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-100">
+                        <p className="text-xs text-gray-400">
+                            Mention &quot;Freepo&quot; when calling for better response.
+                        </p>
+                        <a
+                            href={`mailto:freepo.in@gmail.com?subject=Report Spam: ${encodeURIComponent(post.title)}&body=I want to report this listing as spam/scam:%0A%0APost: ${encodeURIComponent(post.title)}%0ALink: https://freepo.in/item/${params.slug}%0A%0AReason: `}
+                            className="text-xs text-red-500 hover:text-red-700 hover:underline font-medium"
+                        >
+                            Report Spam
+                        </a>
+                    </div>
                 </div>
 
                 {/* JSON-LD for Jobs */}

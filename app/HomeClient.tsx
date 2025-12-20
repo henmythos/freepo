@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Post, CityStats, Category } from "@/lib/types";
 import { CATEGORIES, CATEGORY_IMAGES, TOP_CITIES } from "@/lib/constants";
 import PostCard from "@/components/PostCard";
@@ -17,14 +17,8 @@ import {
     Phone,
 } from "lucide-react";
 
-const useDebounce = (value: string, delay: number) => {
-    const [debouncedValue, setDebouncedValue] = useState(value);
-    useEffect(() => {
-        const handler = setTimeout(() => setDebouncedValue(value), delay);
-        return () => clearTimeout(handler);
-    }, [value, delay]);
-    return debouncedValue;
-};
+import useDebounce from "@/lib/useDebounce";
+import RecentlyViewed from "@/components/RecentlyViewed";
 
 export default function HomeClient() {
     const router = useRouter();
@@ -199,39 +193,47 @@ export default function HomeClient() {
     }, [activeCity]);
 
     // SEO Dynamic Title Logic
+    // MODIFIED: Homepage (/) always stays "Freepo.in" even if filtered.
+    // Dynamic titles only apply if we were on a specific route (e.g. /city/...) or 
+    // if the user specifically requested dynamic behavior. Current prompt asks to RESTORE homepage layout.
+
+    // We can use usePathname() to detect if we are on root or sub-page
+    const pathname = usePathname();
+    const isCityPage = pathname?.startsWith("/city/");
+
     const getDynamicTitle = () => {
-        if (activeCity && activeCategory && activeCategory !== "All") {
-            return `${activeCategory} in ${activeCity}`;
-        }
-        if (activeCity) {
+        if (isCityPage && activeCity) {
+            if (activeCategory && activeCategory !== "All") {
+                return `${activeCategory} in ${activeCity}`;
+            }
             return `Classifieds in ${activeCity}`;
         }
         return "Freepo.in";
     };
 
     const getDynamicSubTitle = () => {
-        if (activeCity) {
+        if (isCityPage && activeCity) {
             return `Buy & Sell Used Cars, Mobiles, Bikes in ${activeCity}`;
         }
-        return "India's #1 Free Classifieds - Buy, Sell, Rent, Jobs";
+        return "India's #1 Newspaper Style Classifieds - Buy, Sell, Rent, Jobs";
     };
 
     return (
         <div className="min-h-screen flex flex-col max-w-7xl mx-auto px-0 md:px-6 lg:px-8 md:border-x border-gray-200 md:shadow-2xl bg-paper overflow-x-hidden">
             {/* Header */}
-            <header className="border-b-4 border-black py-4 md:py-8 text-center relative px-4">
+            <header className="border-b-4 border-black py-2 md:py-6 text-center relative px-4">
                 <Link href="/" className="block">
-                    <h1 className="font-serif text-4xl md:text-6xl font-black tracking-tighter uppercase mb-2 leading-none break-words">
+                    <h1 className="font-serif text-3xl md:text-6xl font-black tracking-tighter uppercase mb-1 md:mb-2 leading-none break-words">
                         {getDynamicTitle()}
                     </h1>
                 </Link>
-                <div className="text-xs md:text-sm font-bold uppercase tracking-widest text-gray-500 mb-4">
+                <div className="text-[10px] md:text-sm font-bold uppercase tracking-widest text-gray-500 mb-2 md:mb-4">
                     {getDynamicSubTitle()}
                 </div>
                 <div className="absolute top-0 left-0 w-full h-1 bg-black"></div>
 
                 {/* Responsive Ticker */}
-                <div className="flex flex-wrap justify-center items-center gap-2 md:gap-4 text-[9px] sm:text-[10px] md:text-sm font-bold uppercase tracking-wider md:tracking-widest border-t border-b border-black py-2 mt-2 px-2">
+                <div className="flex flex-wrap justify-center items-center gap-1 md:gap-4 text-[9px] md:text-sm font-bold uppercase tracking-wider md:tracking-widest border-t border-b border-black py-1.5 md:py-2 mt-1 md:mt-2 px-1">
                     <span className="flex-shrink-0">India&apos;s Classifieds</span>
                     <span className="w-1 h-1 bg-black rounded-full flex-shrink-0 hidden sm:block"></span>
                     <span className="flex-shrink-0">
@@ -259,7 +261,10 @@ export default function HomeClient() {
             {/* Main */}
             <main className="flex-grow py-2 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 px-4 md:px-0">
                 {/* Left Sidebar */}
-                <aside className="hidden lg:block lg:col-span-3 space-y-8 border-r border-gray-200 pr-6">
+                <aside className="hidden lg:block lg:col-span-3 space-y-6 border-r border-gray-200 pr-6">
+                    {/* Recently Viewed */}
+                    <RecentlyViewed />
+
                     <div>
                         <h3 className="font-bold border-b-2 border-black pb-1 mb-3 flex items-center gap-2 uppercase">
                             <TrendingUp size={16} /> Trending Cities
@@ -286,14 +291,17 @@ export default function HomeClient() {
                         </ul>
                     </div>
 
-                    <div className="bg-gray-100 p-4 border border-gray-300 text-xs text-justify font-serif">
-                        <strong>SAFETY NOTICE:</strong> Never transfer money online before
-                        seeing the item.
+                    <div className="bg-[#fffdf5] p-4 border-2 border-dashed border-gray-400 text-xs text-justify font-serif relative">
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#fffdf5] px-2 font-bold uppercase tracking-widest text-red-600">
+                            Public Notice
+                        </div>
+                        <strong className="text-red-600">SAFETY WARNING:</strong> Never transfer money online before
+                        seeing the item. Meet in public places.
                         <Link
                             href="/safety"
-                            className="block mt-2 font-bold underline"
+                            className="block mt-2 font-bold underline decoration-dotted hover:text-red-600"
                         >
-                            Read Safety Tips
+                            Read Official Safety Guidelines
                         </Link>
                     </div>
                 </aside>
@@ -371,7 +379,7 @@ export default function HomeClient() {
                                     onChange={(e) => setActiveCity(e.target.value === "All" ? "" : e.target.value)}
                                     className="appearance-none bg-white font-bold text-xs uppercase tracking-wider pl-3 pr-8 py-1.5 border border-gray-300 rounded hover:border-black focus:outline-none cursor-pointer"
                                 >
-                                    <option value="All">📍 All Cities</option>
+                                    <option value="All">All Cities</option>
                                     {TOP_CITIES.map(city => (
                                         <option key={city} value={city}>{city}</option>
                                     ))}
@@ -595,12 +603,12 @@ export default function HomeClient() {
                     {/* Category Links for SEO */}
                     <div className="mt-6">
                         <h4 className="font-bold text-xs uppercase tracking-wider text-gray-500 mb-3">Browse Categories</h4>
-                        <div className="flex flex-wrap gap-2 text-xs">
+                        <div className="flex flex-wrap gap-3 text-xs">
                             {CATEGORIES.map((cat) => (
                                 <button
                                     key={cat}
                                     onClick={() => setActiveCategory(cat)}
-                                    className="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition"
+                                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded transition"
                                 >
                                     {cat} India
                                 </button>
@@ -611,9 +619,9 @@ export default function HomeClient() {
             </section>
 
             {/* Footer */}
-            <footer className="border-t-4 border-black py-10 bg-gray-50 px-4">
+            <footer className="border-t-4 border-black py-6 md:py-10 bg-gray-50 px-4">
                 <div className="max-w-4xl mx-auto text-center">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 text-sm">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8 text-sm">
                         <div className="text-left">
                             <h5 className="font-bold uppercase mb-2">Company</h5>
                             <ul className="space-y-1 text-gray-600">
@@ -701,6 +709,16 @@ export default function HomeClient() {
                         </div>
                     </div>
                     <div className="border-t border-gray-300 pt-6">
+                        {/* Platform Stats */}
+                        {stats.length > 0 && (
+                            <div className="flex justify-center gap-6 mb-4 text-xs font-mono text-gray-500">
+                                <span className="flex items-center gap-1">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                    {stats.reduce((sum, s) => sum + s.posts_count, 0).toLocaleString()}+ Listings
+                                </span>
+                                <span>{stats.length}+ Cities</span>
+                            </div>
+                        )}
                         <div className="font-serif text-xl font-bold mb-2">
                             Freepo.in
                         </div>

@@ -82,7 +82,7 @@ export default function AboutPage() {
                         </ol>
 
                         <div className="bg-gray-100 p-6 mt-8 text-center border border-gray-300">
-                            <p className="font-bold text-lg">Made with ❤️ in India 🇮🇳</p>
+                            <p className="font-bold text-lg">Made with <span className="text-red-500">love</span> in <span className="text-orange-600">India</span></p>
                             <p className="text-sm text-gray-600 mt-2">
                                 Freepo.in — Connecting buyers and sellers since 2024
                             </p>

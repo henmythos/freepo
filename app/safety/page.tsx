@@ -25,7 +25,7 @@ export default function SafetyPage() {
                     </div>
 
                     <div className="bg-red-50 border-l-4 border-red-500 p-4 my-6 font-sans text-sm">
-                        <strong className="text-red-700">⚠️ CRITICAL WARNING:</strong> Freepo.in <strong>NEVER</strong> asks for OTPs,
+                        <strong className="text-red-700">CRITICAL WARNING:</strong> Freepo.in <strong>NEVER</strong> asks for OTPs,
                         UPI PINs, or payments. If someone claims to be from Freepo and asks for money, it&apos;s a SCAM!
                     </div>
 

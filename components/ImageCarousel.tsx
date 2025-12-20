@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ImageCarouselProps {
@@ -33,19 +34,15 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
     // Single image - no carousel needed
     if (validImages.length === 1) {
         return (
-            <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-[#f2f2f2]">
-                {/* Background Layer */}
-                <img
-                    src={validImages[0].src}
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50"
-                    aria-hidden="true"
-                />
-                {/* Foreground Layer */}
-                <img
+            <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-white">
+                {/* Clean Image Display */}
+                <Image
                     src={validImages[0].src}
                     alt={validImages[0].alt}
-                    className="relative w-full h-full object-contain z-10"
+                    fill
+                    className="object-contain z-10"
+                    sizes="(max-width: 768px) 100vw, 800px"
+                    priority
                 />
             </div>
         );
@@ -64,7 +61,7 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
     };
 
     return (
-        <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-[#f2f2f2] group">
+        <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-white group">
             {/* Main Image */}
             <div className="relative w-full h-full">
                 {validImages.map((img, index) => (
@@ -73,19 +70,14 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
                         className={`absolute inset-0 transition-opacity duration-300 ${index === currentIndex ? "opacity-100" : "opacity-0 pointer-events-none"
                             }`}
                     >
-                        {/* Background Layer */}
-                        <img
-                            src={img.src}
-                            alt=""
-                            className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50"
-                            aria-hidden="true"
-                        />
-                        {/* Foreground Layer */}
-                        <img
+                        {/* Foreground Layer Only - Clean & Uncropped */}
+                        <Image
                             src={img.src}
                             alt={img.alt}
-                            className="relative w-full h-full object-contain z-10"
-                            loading={index === 0 ? "eager" : "lazy"}
+                            fill
+                            className="object-contain z-10"
+                            sizes="(max-width: 768px) 100vw, 800px"
+                            priority={index === 0}
                         />
                     </div>
                 ))}

@@ -121,6 +121,11 @@ export default function RootLayout({
     return (
         <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
             <head>
+                <link rel="manifest" href="/manifest.json" />
+                <meta name="theme-color" content="#000000" />
+                <meta name="apple-mobile-web-app-capable" content="yes" />
+                <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+                <meta name="apple-mobile-web-app-title" content="Freepo" />
                 <link rel="preconnect" href="https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev" />
                 <link rel="dns-prefetch" href="https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev" />
                 <script
