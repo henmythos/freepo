@@ -134,7 +134,12 @@ export async function GET(request: NextRequest) {
         args.push(limit);
 
         const result = await db.execute({ sql, args });
-        return NextResponse.json(result.rows);
+        return NextResponse.json(result.rows, {
+            headers: {
+                // Cache for 60s public, allow stale for 5 mins (High Performance)
+                "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+            },
+        });
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Unknown error";
         console.error("[GET ERROR]", message);

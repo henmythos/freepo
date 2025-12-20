@@ -12,7 +12,12 @@ export async function GET() {
       ORDER BY score DESC 
       LIMIT 20
     `);
-        return NextResponse.json(result.rows);
+        return NextResponse.json(result.rows, {
+            headers: {
+                // Cache for 1 hour, reuse stale for 30 mins
+                "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=1800",
+            },
+        });
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Unknown error";
         console.error("[STATS ERROR]", message);
