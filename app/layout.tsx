@@ -126,6 +126,7 @@ export default function RootLayout({
                 <meta name="apple-mobile-web-app-capable" content="yes" />
                 <meta name="apple-mobile-web-app-status-bar-style" content="black" />
                 <meta name="apple-mobile-web-app-title" content="Freepo" />
+                <meta name="google-adsense-account" content="ca-pub-4084810519453125" />
                 <link rel="preconnect" href="https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev" />
                 <link rel="dns-prefetch" href="https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev" />
                 <script
@@ -148,6 +149,11 @@ export default function RootLayout({
                         gtag('config', 'G-RMCXY21ZJ3');
                     `}
                 </Script>
+                <Script
+                    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4084810519453125"
+                    crossOrigin="anonymous"
+                    strategy="afterInteractive"
+                />
             </body>
         </html>
     );
