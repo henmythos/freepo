@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { Metadata } from "next";
 import ImageCarousel from "@/components/ImageCarousel";
+import ShareButton from "@/components/ShareButton";
 import { extractIdFromSlug } from "@/lib/slugUtils";
 
 interface PageProps {
@@ -94,7 +95,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
         <div className="min-h-screen bg-paper">
             <div className="max-w-3xl mx-auto py-8 px-4">
                 <Link
-                    href="/"
+                    href={`/?city=${encodeURIComponent(post.city)}&category=${encodeURIComponent(post.category)}`}
                     className="mb-6 flex items-center text-sm font-bold uppercase hover:underline text-gray-500"
                 >
                     <ArrowLeft size={16} className="mr-1" /> Back
@@ -162,6 +163,11 @@ export default async function ItemDetailPage({ params }: PageProps) {
                     <h3 className="font-sans font-bold uppercase text-sm mb-4 tracking-wider">
                         Contact Advertiser
                     </h3>
+                    {post.contact_name && (
+                        <div className="mb-4 text-gray-700 font-medium">
+                            Posted by: <span className="font-bold text-ink">{post.contact_name}</span>
+                        </div>
+                    )}
 
                     <div className="flex flex-col md:flex-row gap-4">
                         {(post.contact_preference === "call" || !post.contact_preference || post.contact_preference === "both") && (
@@ -183,6 +189,13 @@ export default async function ItemDetailPage({ params }: PageProps) {
                                 <MessageCircle size={18} /> WhatsApp
                             </a>
                         )}
+
+                        <div className="flex-1 md:flex-none md:w-32">
+                            <ShareButton
+                                title={`Check out this ${post.category} on Freepo.in: ${post.title}`}
+                                text={post.description?.substring(0, 100) + "..."}
+                            />
+                        </div>
                     </div>
                     <p className="text-xs text-gray-400 mt-2 text-center">
                         Mention &quot;Freepo&quot; when calling to get a better response.
@@ -207,14 +220,20 @@ export default async function ItemDetailPage({ params }: PageProps) {
                                 hiringOrganization: {
                                     "@type": "Organization",
                                     name: post.company_name || "Confidential",
+                                    logo: "https://freepo.in/logo.png"
                                 },
                                 jobLocation: {
                                     "@type": "Place",
                                     address: {
                                         "@type": "PostalAddress",
                                         addressLocality: post.city,
+                                        addressRegion: post.city,
                                         addressCountry: "IN",
                                     },
+                                },
+                                applicantLocationRequirements: {
+                                    "@type": "Country",
+                                    name: "India"
                                 },
                                 baseSalary: post.salary
                                     ? {
@@ -222,14 +241,48 @@ export default async function ItemDetailPage({ params }: PageProps) {
                                         currency: "INR",
                                         value: {
                                             "@type": "QuantitativeValue",
-                                            value: post.salary,
+                                            value: parseFloat(post.salary.replace(/[^0-9.]/g, '')) || 0,
+                                            unitText: "MONTH"
                                         },
                                     }
                                     : undefined,
+                                jobLocationType: "TELECOMMUTE",
                             }),
                         }}
                     />
                 )}
+
+                {/* Breadcrumb Schema for All Posts */}
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            "@context": "https://schema.org",
+                            "@type": "BreadcrumbList",
+                            "itemListElement": [{
+                                "@type": "ListItem",
+                                "position": 1,
+                                "name": "Home",
+                                "item": "https://freepo.in"
+                            }, {
+                                "@type": "ListItem",
+                                "position": 2,
+                                "name": post.city,
+                                "item": `https://freepo.in/?city=${encodeURIComponent(post.city)}`
+                            }, {
+                                "@type": "ListItem",
+                                "position": 3,
+                                "name": post.category,
+                                "item": `https://freepo.in/?city=${encodeURIComponent(post.city)}&category=${encodeURIComponent(post.category)}`
+                            }, {
+                                "@type": "ListItem",
+                                "position": 4,
+                                "name": post.title,
+                                "item": `https://freepo.in/item/${params.slug}`
+                            }]
+                        })
+                    }}
+                />
             </div>
         </div>
     );

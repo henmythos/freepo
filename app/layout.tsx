@@ -121,6 +121,8 @@ export default function RootLayout({
     return (
         <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
             <head>
+                <link rel="preconnect" href="https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev" />
+                <link rel="dns-prefetch" href="https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev" />
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

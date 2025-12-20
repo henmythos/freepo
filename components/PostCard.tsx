@@ -32,7 +32,7 @@ export default function PostCard({ post }: PostCardProps) {
               <span className="bg-gray-100 px-1.5 py-0.5 font-medium uppercase tracking-wide text-[10px]">
                 {post.category}
               </span>
-              <span>{post.locality ? `${post.locality}, ${post.city}` : post.city}</span>
+              <span>{post.locality ? `${post.city} • ${post.locality}` : post.city}</span>
               <span>•</span>
               <span>
                 {formatDistanceToNow(new Date(post.created_at), {

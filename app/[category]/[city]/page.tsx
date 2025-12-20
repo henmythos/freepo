@@ -111,7 +111,7 @@ export default async function SEOCategoryPage({ params }: PageProps) {
     const isGridView = GRID_CATEGORIES.includes(category.toLowerCase());
 
     // Dynamic SEO Intro Text
-    const introText = `Freepo allows free ${category} posting in ${cityTitle} for everyone. Find the latest ${category} in ${cityTitle} including private listings, verified options, and more across areas in ${cityTitle}.`;
+    const introText = `Looking to **sell used cars**, **mobiles**, or **bikes** in ${cityTitle}? Freepo.in is your best ${category} marketplace in ${cityTitle}. Post free ads to reach thousands of buyers. Find the latest ${category} listings including private sales, verified options, and more across all localities in ${cityTitle}.`;
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -123,8 +123,8 @@ export default async function SEOCategoryPage({ params }: PageProps) {
                     <ArrowLeft size={16} className="mr-1" /> Back to Home
                 </Link>
 
-                <h1 className="font-serif text-3xl font-bold text-ink mb-4">
-                    {categoryTitle} in {cityTitle}
+                <h1 className="font-serif text-3xl font-bold text-ink mb-4 leading-tight">
+                    {categoryTitle} in {cityTitle}: Buy & Sell Used items, Jobs, Rentals
                 </h1>
 
                 <p className="text-gray-600 mb-8 text-sm leading-relaxed border-l-4 border-black pl-4 bg-white py-2 pr-2 shadow-sm">

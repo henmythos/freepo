@@ -34,10 +34,18 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
     if (validImages.length === 1) {
         return (
             <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-[#f2f2f2]">
+                {/* Background Layer */}
+                <img
+                    src={validImages[0].src}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50"
+                    aria-hidden="true"
+                />
+                {/* Foreground Layer */}
                 <img
                     src={validImages[0].src}
                     alt={validImages[0].alt}
-                    className="w-full h-full object-contain"
+                    className="relative w-full h-full object-contain z-10"
                 />
             </div>
         );
@@ -65,10 +73,19 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
                         className={`absolute inset-0 transition-opacity duration-300 ${index === currentIndex ? "opacity-100" : "opacity-0 pointer-events-none"
                             }`}
                     >
+                        {/* Background Layer */}
+                        <img
+                            src={img.src}
+                            alt=""
+                            className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-50"
+                            aria-hidden="true"
+                        />
+                        {/* Foreground Layer */}
                         <img
                             src={img.src}
                             alt={img.alt}
-                            className="w-full h-full object-contain"
+                            className="relative w-full h-full object-contain z-10"
+                            loading={index === 0 ? "eager" : "lazy"}
                         />
                     </div>
                 ))}

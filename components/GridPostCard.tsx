@@ -46,7 +46,7 @@ export default function GridPostCard({ post }: GridPostCardProps) {
                         </h2>
                         <div className="flex items-center gap-1 text-xs text-gray-500 mb-2">
                             <MapPin size={12} />
-                            <span className="truncate">{post.locality ? `${post.locality}, ${post.city}` : post.city}</span>
+                            <span className="truncate">{post.locality ? `${post.city} • ${post.locality}` : post.city}</span>
                         </div>
                     </div>
 
