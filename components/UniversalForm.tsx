@@ -80,7 +80,7 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
         setIsDetectingLocation(false);
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            alert("📍 Location helps nearby buyers/job seekers find your ad faster!\n\nPlease allow location access or enter city/locality manually.");
+            alert("Location helps nearby buyers/job seekers find your ad faster!\n\nPlease allow location access or enter city/locality manually.");
             break;
           case error.POSITION_UNAVAILABLE:
             alert("Location unavailable. Please enter manually.");

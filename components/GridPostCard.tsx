@@ -39,7 +39,7 @@ export default function GridPostCard({ post }: GridPostCardProps) {
                         </div>
                     )}
                     {isNew && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-bold px-2 py-1 uppercase tracking-wide shadow-sm">
+                        <div className="absolute top-2 left-2 bg-green-600 text-white text-[9px] font-bold px-2 py-1 uppercase tracking-wide shadow-sm">
                             Fresh
                         </div>
                     )}

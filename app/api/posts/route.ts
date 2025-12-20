@@ -266,14 +266,14 @@ export async function POST(request: NextRequest) {
           salary, price, job_type, experience, education, company_name, 
           expires_at, image1, image2, image3, image4, image5, 
           image1_alt, image2_alt, image3_alt, image4_alt, image5_alt, 
-          contact_preference
+          contact_preference, locality
         )
         VALUES (
           ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
           datetime('now', '+30 days'), 
           ?, ?, ?, ?, ?, 
           ?, ?, ?, ?, ?, 
-          ?
+          ?, ?
         );
       `,
             args: [
@@ -302,7 +302,8 @@ export async function POST(request: NextRequest) {
                 image3_alt_final,
                 image4_alt_final,
                 image5_alt_final,
-                contact_preference
+                contact_preference,
+                locality
             ],
         });
 

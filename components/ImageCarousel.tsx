@@ -60,10 +60,45 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
         setCurrentIndex(index);
     };
 
+    // Touch swipe handling
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+    const minSwipeDistance = 50;
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe) {
+            goToNext();
+        }
+        if (isRightSwipe) {
+            goToPrevious();
+        }
+    };
+
     return (
         <div className="relative h-64 md:h-80 overflow-hidden border border-gray-200 bg-white group">
-            {/* Main Image */}
-            <div className="relative w-full h-full">
+            {/* Main Image - with touch handlers */}
+            <div
+                className="relative w-full h-full"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+            >
                 {validImages.map((img, index) => (
                     <div
                         key={index}
@@ -83,17 +118,17 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
                 ))}
             </div>
 
-            {/* Navigation Arrows */}
+            {/* Navigation Arrows - visible on mobile, hover on desktop */}
             <button
                 onClick={goToPrevious}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                 aria-label="Previous image"
             >
                 <ChevronLeft size={20} />
             </button>
             <button
                 onClick={goToNext}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                 aria-label="Next image"
             >
                 <ChevronRight size={20} />

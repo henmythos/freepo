@@ -34,14 +34,14 @@ export default function PostCard({ post }: PostCardProps) {
               loading="lazy"
             />
             {isNew && (
-              <div className="absolute top-1 left-1 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 uppercase tracking-wide">
+              <div className="absolute top-1 left-1 bg-green-600 text-white text-[8px] font-bold px-1.5 py-0.5 uppercase tracking-wide">
                 Fresh
               </div>
             )}
             {/* Image count indicator */}
             {(post.image2 || post.image3 || post.image4 || post.image5) && (
               <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                📷 {[post.image1, post.image2, post.image3, post.image4, post.image5].filter(Boolean).length}
+                +{[post.image1, post.image2, post.image3, post.image4, post.image5].filter(Boolean).length - 1}
               </div>
             )}
           </div>
@@ -53,7 +53,7 @@ export default function PostCard({ post }: PostCardProps) {
                 {post.category}
               </span>
               {isNew && !post.image1 && (
-                <span className="bg-red-500 text-white px-1.5 py-0.5 font-bold uppercase tracking-wide text-[8px]">Fresh</span>
+                <span className="bg-green-600 text-white px-1.5 py-0.5 font-bold uppercase tracking-wide text-[8px]">Fresh</span>
               )}
               <span>{post.locality ? `${post.city}, ${post.locality}` : post.city}</span>
               <span>|</span>

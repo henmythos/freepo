@@ -15,6 +15,7 @@ import {
     ChevronDown,
     Rss,
     Phone,
+    MapPin,
 } from "lucide-react";
 
 import useDebounce from "@/lib/useDebounce";
@@ -79,6 +80,59 @@ export default function HomeClient() {
     // Quick Filters
     const [withPhotosOnly, setWithPhotosOnly] = useState(false);
     const [postedToday, setPostedToday] = useState(false);
+    const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+
+    // Detect visitor location to auto-select city
+    const detectVisitorLocation = async () => {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser");
+            return;
+        }
+
+        setIsDetectingLocation(true);
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const { latitude, longitude } = position.coords;
+
+                    const response = await fetch(
+                        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+                    );
+
+                    if (!response.ok) throw new Error("Failed to fetch location");
+
+                    const data = await response.json();
+                    const detectedCity = data.city || data.locality || "";
+
+                    // Match with TOP_CITIES
+                    const matchedCity = TOP_CITIES.find(
+                        (city) => city.toLowerCase() === detectedCity.toLowerCase()
+                    );
+
+                    if (matchedCity) {
+                        setActiveCity(matchedCity);
+                    } else {
+                        alert(`"${detectedCity}" is not in our supported cities yet. Showing all listings.`);
+                    }
+                } catch (error) {
+                    console.error("Location detection error:", error);
+                    alert("Could not detect location. Please select a city manually.");
+                } finally {
+                    setIsDetectingLocation(false);
+                }
+            },
+            (error) => {
+                setIsDetectingLocation(false);
+                if (error.code === error.PERMISSION_DENIED) {
+                    alert("Allow location access to find nearby listings, or select a city manually.");
+                } else {
+                    alert("Could not get location. Please select a city manually.");
+                }
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+    };
 
     // Feature 2: Grid View Categories
     const GRID_CATEGORIES = ["cars", "bikes", "properties", "rentals", "buy/sell", "electronics"];
@@ -399,6 +453,21 @@ export default function HomeClient() {
                                 </div>
                             </div>
 
+                            {/* Nearby Button */}
+                            <button
+                                onClick={detectVisitorLocation}
+                                disabled={isDetectingLocation}
+                                className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                title="Find listings near you"
+                            >
+                                {isDetectingLocation ? (
+                                    <Loader2 className="animate-spin" size={14} />
+                                ) : (
+                                    <MapPin size={14} />
+                                )}
+                                {isDetectingLocation ? "..." : "Nearby"}
+                            </button>
+
                             {/* Locality Filter Dropdown */}
                             {activeCity ? (
                                 <div className="relative inline-block text-left flex-1 max-w-[200px]">
@@ -437,13 +506,13 @@ export default function HomeClient() {
                                 onClick={() => setWithPhotosOnly(!withPhotosOnly)}
                                 className={`px-3 py-1 text-xs font-bold rounded-full border transition-all ${withPhotosOnly ? "bg-black text-white border-black" : "bg-white border-gray-300 hover:border-black"}`}
                             >
-                                📷 With Photos
+                                With Photos
                             </button>
                             <button
                                 onClick={() => setPostedToday(!postedToday)}
                                 className={`px-3 py-1 text-xs font-bold rounded-full border transition-all ${postedToday ? "bg-black text-white border-black" : "bg-white border-gray-300 hover:border-black"}`}
                             >
-                                🕐 Posted Today
+                                Posted Today
                             </button>
 
                             {/* Active Filters Display */}
@@ -451,7 +520,7 @@ export default function HomeClient() {
                                 <div className="flex items-center gap-1 ml-2">
                                     {activeCity && (
                                         <span className="bg-gray-200 px-2 py-0.5 rounded text-xs flex items-center gap-1">
-                                            📍 {activeCity}
+                                            {activeCity}
                                             <button onClick={() => setActiveCity("")} className="font-bold ml-0.5">×</button>
                                         </span>
                                     )}
