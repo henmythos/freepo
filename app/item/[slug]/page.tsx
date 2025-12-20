@@ -9,6 +9,7 @@ import {
     MessageCircle,
     Briefcase,
     Eye,
+    MapPin,
 } from "lucide-react";
 import type { Metadata } from "next";
 import ImageCarousel from "@/components/ImageCarousel";
@@ -97,6 +98,23 @@ export default async function ItemDetailPage({ params }: PageProps) {
         <div className="min-h-screen bg-paper">
             {/* Track this view in localStorage for Recently Viewed */}
             <TrackView id={post.id} title={post.title} slug={params.slug} />
+
+            {/* Scrolling Marquee Banner */}
+            <div className="bg-black text-white overflow-hidden whitespace-nowrap">
+                <div className="animate-marquee inline-block py-2 text-xs md:text-sm font-bold uppercase tracking-widest">
+                    <span className="mx-8">🇮🇳 India&apos;s #1 Newspaper Style Classifieds</span>
+                    <span className="mx-8">•</span>
+                    <span className="mx-8">Buy, Sell, Rent, Jobs - 100% Free</span>
+                    <span className="mx-8">•</span>
+                    <span className="mx-8">Post Your Ad Now at Freepo.in</span>
+                    <span className="mx-8">•</span>
+                    <span className="mx-8">🇮🇳 India&apos;s #1 Newspaper Style Classifieds</span>
+                    <span className="mx-8">•</span>
+                    <span className="mx-8">Buy, Sell, Rent, Jobs - 100% Free</span>
+                    <span className="mx-8">•</span>
+                    <span className="mx-8">Post Your Ad Now at Freepo.in</span>
+                </div>
+            </div>
 
             <div className="max-w-3xl mx-auto py-8 px-4">
                 <Link
@@ -227,6 +245,47 @@ export default async function ItemDetailPage({ params }: PageProps) {
                     </div>
                 </div>
 
+                {/* Location Section */}
+                <div className="bg-gray-50 border-t border-b border-gray-200 py-6 px-4 md:px-8 mt-6">
+                    <h3 className="font-sans font-bold uppercase text-sm mb-4 tracking-wider flex items-center gap-2">
+                        <MapPin size={16} /> Posted Location
+                    </h3>
+                    <div className="mb-4">
+                        <p className="text-gray-700 font-medium">
+                            <span className="font-bold text-ink">{post.city}</span>
+                            {post.locality && (
+                                <span className="text-gray-600">, {post.locality}</span>
+                            )}
+                        </p>
+                    </div>
+
+                    {/* Google Maps Embed */}
+                    <div className="w-full h-48 md:h-64 rounded-lg overflow-hidden border border-gray-200 mb-3">
+                        <iframe
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${encodeURIComponent(
+                                post.locality ? `${post.locality}, ${post.city}, India` : `${post.city}, India`
+                            )}&zoom=12`}
+                            title={`Map showing ${post.city}${post.locality ? `, ${post.locality}` : ''}`}
+                        ></iframe>
+                    </div>
+
+                    <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                            post.locality ? `${post.locality}, ${post.city}, India` : `${post.city}, India`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                        <MapPin size={14} /> Open in Google Maps
+                    </a>
+                </div>
+
                 {/* JSON-LD for Jobs */}
                 {post.category === "Jobs" && (
                     <script
@@ -309,6 +368,6 @@ export default async function ItemDetailPage({ params }: PageProps) {
                     }}
                 />
             </div>
-        </div>
+        </div >
     );
 }

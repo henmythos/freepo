@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CreatePostRequest, Category } from "@/lib/types";
 import { CATEGORIES, TOP_CITIES, JOB_TYPES } from "@/lib/constants";
-import { Loader2, ImagePlus, X } from "lucide-react";
+import { Loader2, ImagePlus, X, MapPin } from "lucide-react";
 import Image from "next/image";
 
 interface UniversalFormProps {
@@ -13,10 +13,88 @@ interface UniversalFormProps {
 export default function UniversalForm({ onSubmit }: UniversalFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const [formData, setFormData] = useState<Partial<CreatePostRequest>>({
     category: "Jobs",
   });
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+
+  // Detect location and auto-fill city/locality
+  const detectLocation = async () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser");
+      return;
+    }
+
+    setIsDetectingLocation(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+
+          // Use BigDataCloud free reverse geocoding API (no API key required)
+          const response = await fetch(
+            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch location data");
+          }
+
+          const data = await response.json();
+
+          // Extract city and locality from response
+          const detectedCity = data.city || data.locality || "";
+          const detectedLocality = data.locality !== data.city ? data.locality : (data.principalSubdivision || "");
+
+          // Match detected city with TOP_CITIES (case-insensitive)
+          const matchedCity = TOP_CITIES.find(
+            (city) => city.toLowerCase() === detectedCity.toLowerCase()
+          );
+
+          if (matchedCity) {
+            setFormData((prev) => ({
+              ...prev,
+              city: matchedCity,
+              locality: detectedLocality || prev.locality,
+            }));
+          } else if (detectedCity) {
+            // City not in our list, but still fill locality
+            setFormData((prev) => ({
+              ...prev,
+              locality: detectedLocality || detectedCity || prev.locality,
+            }));
+            alert(`"${detectedCity}" is not available. Please select a city from the list. Locality has been auto-filled.`);
+          } else {
+            alert("Could not determine your location. Please select manually.");
+          }
+        } catch (error) {
+          console.error("Reverse geocoding error:", error);
+          alert("Failed to detect location. Please try again or enter manually.");
+        } finally {
+          setIsDetectingLocation(false);
+        }
+      },
+      (error) => {
+        setIsDetectingLocation(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            alert("📍 Location helps nearby buyers/job seekers find your ad faster!\n\nPlease allow location access or enter city/locality manually.");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            alert("Location unavailable. Please enter manually.");
+            break;
+          case error.TIMEOUT:
+            alert("Location request timed out. Please try again.");
+            break;
+          default:
+            alert("Could not get location. Please enter manually.");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -287,7 +365,22 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
 
       {/* City */}
       <div>
-        <label className="block font-bold text-sm uppercase mb-2">City *</label>
+        <div className="flex items-center justify-between mb-2">
+          <label className="block font-bold text-sm uppercase">City *</label>
+          <button
+            type="button"
+            onClick={detectLocation}
+            disabled={isDetectingLocation}
+            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+          >
+            {isDetectingLocation ? (
+              <Loader2 className="animate-spin" size={14} />
+            ) : (
+              <MapPin size={14} />
+            )}
+            {isDetectingLocation ? "Detecting..." : "Detect Location"}
+          </button>
+        </div>
         <select
           name="city"
           value={formData.city || ""}

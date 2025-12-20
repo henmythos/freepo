@@ -76,6 +76,10 @@ export default function HomeClient() {
     // So we remove distinct `selectedCity` state and just use `activeCity`.
     const [localityFilter, setLocalityFilter] = useState("");
 
+    // Quick Filters
+    const [withPhotosOnly, setWithPhotosOnly] = useState(false);
+    const [postedToday, setPostedToday] = useState(false);
+
     // Feature 2: Grid View Categories
     const GRID_CATEGORIES = ["cars", "bikes", "properties", "rentals", "buy/sell", "electronics"];
     const isGridView = GRID_CATEGORIES.includes(activeCategory.toLowerCase());
@@ -90,6 +94,14 @@ export default function HomeClient() {
         if (localityFilter) {
             const loc = post.locality?.toLowerCase() || "";
             if (!loc.includes(localityFilter.toLowerCase())) return false;
+        }
+        // With Photos Filter
+        if (withPhotosOnly && !post.image1) return false;
+        // Posted Today Filter
+        if (postedToday) {
+            const postDate = new Date(post.created_at);
+            const today = new Date();
+            if (postDate.toDateString() !== today.toDateString()) return false;
         }
         return true;
     });
@@ -227,9 +239,7 @@ export default function HomeClient() {
                         {getDynamicTitle()}
                     </h1>
                 </Link>
-                <div className="text-[10px] md:text-sm font-bold uppercase tracking-widest text-gray-500 mb-2 md:mb-4">
-                    {getDynamicSubTitle()}
-                </div>
+
                 <div className="absolute top-0 left-0 w-full h-1 bg-black"></div>
 
                 {/* Responsive Ticker */}
@@ -420,27 +430,55 @@ export default function HomeClient() {
                             )}
                         </div>
 
-                        {activeCity && (
-                            <div className="flex items-center gap-2 text-sm">
-                                <span className="font-bold">Server Filter:</span>
-                                <span className="bg-gray-200 px-2 py-1 rounded flex items-center gap-1">
-                                    {activeCity}
-                                    <button
-                                        onClick={() => setActiveCity("")}
-                                        className="font-bold ml-1"
-                                    >
-                                        ×
-                                    </button>
-                                </span>
-                            </div>
-                        )}
+                        {/* Quick Filters */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-bold uppercase text-gray-500">Filters:</span>
+                            <button
+                                onClick={() => setWithPhotosOnly(!withPhotosOnly)}
+                                className={`px-3 py-1 text-xs font-bold rounded-full border transition-all ${withPhotosOnly ? "bg-black text-white border-black" : "bg-white border-gray-300 hover:border-black"}`}
+                            >
+                                📷 With Photos
+                            </button>
+                            <button
+                                onClick={() => setPostedToday(!postedToday)}
+                                className={`px-3 py-1 text-xs font-bold rounded-full border transition-all ${postedToday ? "bg-black text-white border-black" : "bg-white border-gray-300 hover:border-black"}`}
+                            >
+                                🕐 Posted Today
+                            </button>
+
+                            {/* Active Filters Display */}
+                            {(activeCity || withPhotosOnly || postedToday) && (
+                                <div className="flex items-center gap-1 ml-2">
+                                    {activeCity && (
+                                        <span className="bg-gray-200 px-2 py-0.5 rounded text-xs flex items-center gap-1">
+                                            📍 {activeCity}
+                                            <button onClick={() => setActiveCity("")} className="font-bold ml-0.5">×</button>
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Listings */}
                     <div className="space-y-0 min-h-[400px]">
                         {isLoading ? (
-                            <div className="flex justify-center py-10">
-                                <Loader2 className="animate-spin" size={30} />
+                            /* Skeleton Loading */
+                            <div className="space-y-0">
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <div key={i} className="border-b border-gray-200 py-3 flex gap-3 animate-pulse">
+                                        <div className="w-24 h-24 bg-gray-200 rounded-md flex-shrink-0" />
+                                        <div className="flex-1 space-y-2">
+                                            <div className="flex gap-2">
+                                                <div className="h-4 w-16 bg-gray-200 rounded" />
+                                                <div className="h-4 w-24 bg-gray-200 rounded" />
+                                            </div>
+                                            <div className="h-5 w-3/4 bg-gray-200 rounded" />
+                                            <div className="h-4 w-1/2 bg-gray-200 rounded" />
+                                        </div>
+                                        <div className="h-5 w-20 bg-gray-200 rounded" />
+                                    </div>
+                                ))}
                             </div>
                         ) : (
                             <>

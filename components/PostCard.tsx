@@ -24,18 +24,24 @@ export default function PostCard({ post }: PostCardProps) {
       <article className={`border-b border-gray-200 py-3 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 ${(post.category === "Jobs" || post.category === "Services") ? "bg-[#fffdf5] px-2 -mx-2" : ""
         }`}>
         {post.image1 && (
-          <div className="relative w-24 h-24 flex-shrink-0 bg-white border border-gray-200 rounded-md overflow-hidden">
+          <div className="relative w-24 h-24 flex-shrink-0 bg-[#f2f2f2] border border-gray-200 rounded-md overflow-hidden flex items-center justify-center">
             <Image
               src={post.image1}
               alt={post.image1_alt || post.title}
-              fill
-              className="object-contain"
-              sizes="96px"
+              width={96}
+              height={96}
+              className="max-w-full max-h-full w-auto h-auto object-contain block"
               loading="lazy"
             />
             {isNew && (
               <div className="absolute top-1 left-1 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 uppercase tracking-wide">
                 Fresh
+              </div>
+            )}
+            {/* Image count indicator */}
+            {(post.image2 || post.image3 || post.image4 || post.image5) && (
+              <div className="absolute bottom-1 right-1 bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                📷 {[post.image1, post.image2, post.image3, post.image4, post.image5].filter(Boolean).length}
               </div>
             )}
           </div>

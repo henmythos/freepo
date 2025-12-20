@@ -54,9 +54,9 @@ export const metadata: Metadata = {
         google: 'your-google-verification-code', // Replace with actual code
     },
     icons: {
-        icon: 'https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev/FREEPO.png',
-        shortcut: 'https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev/FREEPO.png',
-        apple: 'https://pub-6a3dc798d365491ab799eb3f5e146591.r2.dev/FREEPO.png',
+        icon: '/favicon.ico',
+        shortcut: '/favicon.ico',
+        apple: '/apple-touch-icon.png',
     },
 };
 
