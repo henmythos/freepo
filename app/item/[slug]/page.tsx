@@ -33,11 +33,8 @@ async function getPost(id: string): Promise<Post | null> {
             return null;
         }
 
-        // Increment view count
-        await db.execute({
-            sql: "UPDATE posts SET views = views + 1 WHERE id = ?",
-            args: [id],
-        });
+        // View count is now tracked client-side via TrackView component
+        // to avoid writes on every server render (bots, refreshes, etc.)
 
         return result.rows[0] as unknown as Post;
     } catch (e) {
