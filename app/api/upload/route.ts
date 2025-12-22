@@ -45,9 +45,12 @@ export async function POST(request: NextRequest) {
 
             const buffer = Buffer.from(await file.arrayBuffer());
 
-            // Resize and compress
+            // Resize (preserve aspect ratio, no cropping) and compress to WebP
             const processedBuffer = await sharp(buffer)
-                .resize(1200, 675, { fit: "cover", position: "center" })
+                .resize(1200, 1200, {
+                    fit: "inside",           // Scales to fit within bounds, preserves aspect ratio
+                    withoutEnlargement: true // Don't upscale small images
+                })
                 .toFormat("webp", { quality: 80 })
                 .toBuffer();
 
