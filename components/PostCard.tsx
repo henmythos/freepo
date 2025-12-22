@@ -30,7 +30,7 @@ export default function PostCard({ post }: PostCardProps) {
               alt={post.image1_alt || post.title}
               width={96}
               height={96}
-              className="max-w-full max-h-full w-auto h-auto object-contain block"
+              className="w-full h-full object-cover"
               loading="lazy"
             />
             {isNew && (

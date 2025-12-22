@@ -105,7 +105,7 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Image Optimization Helper
+  // Image Optimization Helper - "Contain" fit (no cropping)
   const processImage = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       // 1. Initial Size Check
@@ -125,18 +125,29 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
             return;
           }
 
-          // Target dimensions
-          const TARGET_WIDTH = 1200;
-          const TARGET_HEIGHT = 628;
-          canvas.width = TARGET_WIDTH;
-          canvas.height = TARGET_HEIGHT;
+          // Max dimensions - using square to preserve aspect ratio better
+          const MAX_SIZE = 1200;
 
-          // Calculate "cover" fit
-          const scale = Math.max(TARGET_WIDTH / img.width, TARGET_HEIGHT / img.height);
-          const x = (TARGET_WIDTH - img.width * scale) / 2;
-          const y = (TARGET_HEIGHT - img.height * scale) / 2;
+          // Calculate "contain" fit - scale to fit within bounds, preserving aspect ratio
+          let newWidth = img.width;
+          let newHeight = img.height;
 
-          ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+          if (img.width > MAX_SIZE || img.height > MAX_SIZE) {
+            const scale = Math.min(MAX_SIZE / img.width, MAX_SIZE / img.height);
+            newWidth = Math.round(img.width * scale);
+            newHeight = Math.round(img.height * scale);
+          }
+
+          // Set canvas to actual image dimensions (no padding/cropping)
+          canvas.width = newWidth;
+          canvas.height = newHeight;
+
+          // Fill with white background (for transparent images)
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fillRect(0, 0, newWidth, newHeight);
+
+          // Draw image at full size - NO CROPPING
+          ctx.drawImage(img, 0, 0, newWidth, newHeight);
 
           // Compress to WebP
           const tryCompress = (quality: number) => {
@@ -164,8 +175,8 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
             );
           };
 
-          // Start with 0.70 quality
-          tryCompress(0.70);
+          // Start with 0.75 quality (slightly higher for better quality)
+          tryCompress(0.75);
         };
         img.onerror = () => reject(new Error("Failed to load image"));
         img.src = e.target?.result as string;
