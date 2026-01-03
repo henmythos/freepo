@@ -15,6 +15,7 @@ import type { Metadata } from "next";
 import ImageCarousel from "@/components/ImageCarousel";
 import ShareButton from "@/components/ShareButton";
 import TrackView from "@/components/TrackView";
+import GridPostCard from "@/components/GridPostCard";
 import { extractIdFromSlug } from "@/lib/slugUtils";
 
 interface PageProps {
@@ -33,13 +34,29 @@ async function getPost(id: string): Promise<Post | null> {
             return null;
         }
 
-        // View count is now tracked client-side via TrackView component
-        // to avoid writes on every server render (bots, refreshes, etc.)
-
         return result.rows[0] as unknown as Post;
     } catch (e) {
         console.error("[GET POST ERROR]", e);
         return null;
+    }
+}
+
+async function getRelatedPosts(category: string, city: string, excludeId: number | string): Promise<Post[]> {
+    try {
+        const db = getDB();
+        const result = await db.execute({
+            sql: `
+                SELECT * FROM posts 
+                WHERE category = ? AND city = ? AND id != ? 
+                ORDER BY created_at DESC 
+                LIMIT 4
+            `,
+            args: [category, city, excludeId],
+        });
+        return result.rows as unknown as Post[];
+    } catch (e) {
+        console.error("[GET RELATED POSTS ERROR]", e);
+        return [];
     }
 }
 
@@ -79,6 +96,8 @@ export default async function ItemDetailPage({ params }: PageProps) {
     if (!post) {
         notFound();
     }
+
+    const relatedPosts = await getRelatedPosts(post.category, post.city, post.id);
 
     const categoryImage = CATEGORY_IMAGES[post.category as Category] || CATEGORY_IMAGES.Community;
 
@@ -242,6 +261,20 @@ export default async function ItemDetailPage({ params }: PageProps) {
                     </div>
                 </div>
 
+                {/* Safety Disclaimer for specific categories */}
+                {(post.category === "Jobs" || post.category === "Services" || post.category === "Buy/Sell") && (
+                    <div className="bg-yellow-50 border border-yellow-200 mt-6 p-4 rounded text-sm text-yellow-800">
+                        <h4 className="font-bold flex items-center gap-2 mb-2">
+                            <span className="text-xl">⚠️</span> Safety Alert
+                        </h4>
+                        <p>
+                            <strong>NEVER pay any money upfront</strong> for jobs, loans, or to receive a delivery.
+                            Freepo.in is a free platform and does not verify every advertiser.
+                            Meet sellers in person in public places for transactions.
+                        </p>
+                    </div>
+                )}
+
                 {/* Location Section */}
                 <div className="bg-gray-50 border-t border-b border-gray-200 py-6 px-4 md:px-8 mt-6">
                     <h3 className="font-sans font-bold uppercase text-sm mb-4 tracking-wider flex items-center gap-2">
@@ -283,6 +316,52 @@ export default async function ItemDetailPage({ params }: PageProps) {
                     </a>
                 </div>
 
+                {/* CTA Banners */}
+                <div className="mt-8 bg-black text-white p-6 rounded-lg text-center">
+                    <h3 className="font-serif text-xl font-bold mb-2">Have something to sell?</h3>
+                    <p className="text-sm text-gray-300 mb-4">Post your free ad on Freepo.in in 30 seconds.</p>
+                    <Link
+                        href="/post-ad"
+                        className="inline-block bg-white text-black px-6 py-2 rounded-full font-bold text-sm uppercase hover:bg-gray-100 transition shadow-lg"
+                    >
+                        + Post Free Ad
+                    </Link>
+                </div>
+
+                {/* Related Posts */}
+                {relatedPosts.length > 0 && (
+                    <div className="mt-12 pt-8 border-t-4 border-black">
+                        <h3 className="font-serif text-2xl font-bold mb-6 flex items-center gap-2">
+                            Related in {post.city}
+                        </h3>
+                        <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
+                            {relatedPosts.map(related => (
+                                <div key={related.id} className="h-full">
+                                    <GridPostCard post={related} />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="text-center mt-6">
+                            <Link
+                                href={`/${post.category.toLowerCase()}/${post.city.toLowerCase()}`}
+                                className="text-sm font-bold underline hover:text-blue-600"
+                            >
+                                View More {post.category} in {post.city}
+                            </Link>
+                        </div>
+                    </div>
+                )}
+
+                {/* Navigation */}
+                <div className="mt-12 text-center pb-8">
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 text-gray-500 font-bold uppercase text-sm hover:text-black border border-gray-300 px-6 py-3 rounded hover:border-black transition"
+                    >
+                        Go to Home
+                    </Link>
+                </div>
+
                 {/* JSON-LD for Jobs */}
                 {post.category === "Jobs" && (
                     <script
@@ -293,11 +372,9 @@ export default async function ItemDetailPage({ params }: PageProps) {
                                 "@type": "JobPosting",
                                 title: post.title,
                                 description: post.description,
-                                datePosted: post.created_at,
-                                validThrough: post.expires_at,
-                                employmentType: (post.job_type || "FULL_TIME")
-                                    .toUpperCase()
-                                    .replace(" ", "_"),
+                                datePosted: new Date(post.created_at).toISOString(),
+                                validThrough: new Date(new Date(post.created_at).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(), // +30 days
+                                employmentType: (post.job_type || "FULL_TIME").toUpperCase().replace(" ", "_"),
                                 hiringOrganization: {
                                     "@type": "Organization",
                                     name: post.company_name || "Confidential",
@@ -309,8 +386,15 @@ export default async function ItemDetailPage({ params }: PageProps) {
                                         "@type": "PostalAddress",
                                         addressLocality: post.city,
                                         addressRegion: post.city,
-                                        addressCountry: "IN",
+                                        addressCountry: "IN"
                                     },
+                                    ...(post.latitude && post.longitude ? {
+                                        geo: {
+                                            "@type": "GeoCoordinates",
+                                            latitude: post.latitude,
+                                            longitude: post.longitude
+                                        }
+                                    } : {})
                                 },
                                 applicantLocationRequirements: {
                                     "@type": "Country",
@@ -327,7 +411,52 @@ export default async function ItemDetailPage({ params }: PageProps) {
                                         },
                                     }
                                     : undefined,
-                                jobLocationType: "TELECOMMUTE",
+                                jobLocationType: undefined, // Default to physical unless specified otherwise
+                            }),
+                        }}
+                    />
+                )}
+
+                {/* JSON-LD for Products (Cars, Bikes, Electronics, etc.) */}
+                {["Cars", "Bikes", "Electronics", "Buy/Sell", "Properties", "Rentals"].includes(post.category) && (
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{
+                            __html: JSON.stringify({
+                                "@context": "https://schema.org/",
+                                "@type": "Product",
+                                name: post.title,
+                                description: post.description,
+                                image: [
+                                    post.image1,
+                                    post.image2,
+                                    post.image3
+                                ].filter(Boolean),
+                                offers: {
+                                    "@type": "Offer",
+                                    url: `https://freepo.in/item/${params.slug}`,
+                                    priceCurrency: "INR",
+                                    price: parseFloat(post.price?.replace(/[^0-9.]/g, '') || "0") || 0,
+                                    priceValidUntil: new Date(new Date(post.created_at).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+                                    itemCondition: "https://schema.org/UsedCondition", // Default assumption for classifieds
+                                    availability: "https://schema.org/InStock",
+                                    availableAtOrFrom: {
+                                        "@type": "Place",
+                                        address: {
+                                            "@type": "PostalAddress",
+                                            addressLocality: post.locality ? `${post.locality}, ${post.city}` : post.city,
+                                            addressRegion: post.city,
+                                            addressCountry: "IN"
+                                        },
+                                        ...(post.latitude && post.longitude ? {
+                                            geo: {
+                                                "@type": "GeoCoordinates",
+                                                latitude: post.latitude,
+                                                longitude: post.longitude
+                                            }
+                                        } : {})
+                                    }
+                                }
                             }),
                         }}
                     />

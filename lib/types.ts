@@ -44,6 +44,8 @@ export interface Post {
     image5_alt?: string;
     locality?: string;
     contact_preference?: "call" | "whatsapp" | "both";
+    latitude?: number;
+    longitude?: number;
 }
 
 export interface CreatePostRequest {
@@ -52,6 +54,8 @@ export interface CreatePostRequest {
     category: Category;
     city: string;
     locality?: string;
+    latitude?: number;
+    longitude?: number;
     contact_phone: string;
     contact_name?: string;
     whatsapp?: string;

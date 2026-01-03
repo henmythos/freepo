@@ -20,6 +20,11 @@ import {
 
 import useDebounce from "@/lib/useDebounce";
 import RecentlyViewed from "@/components/RecentlyViewed";
+import dynamic from "next/dynamic";
+
+const FirebaseTracker = dynamic(() => import("@/components/FirebaseTracker"), {
+    ssr: false,
+});
 
 export default function HomeClient() {
     const router = useRouter();
@@ -45,6 +50,14 @@ export default function HomeClient() {
 
     const [activeCity, setActiveCity] = useState<string>(searchParams.get("city") || "");
 
+    // User Location State (Lat/Lng) for "Nearby" filter
+    const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(
+        searchParams.get("lat") && searchParams.get("lng")
+            ? { lat: parseFloat(searchParams.get("lat")!), lng: parseFloat(searchParams.get("lng")!) }
+            : null
+    );
+
+
     // Sync State -> URL
     useEffect(() => {
         const params = new URLSearchParams();
@@ -52,10 +65,16 @@ export default function HomeClient() {
         if (activeCategory !== "All") params.set("category", activeCategory);
         if (debouncedSearch) params.set("search", debouncedSearch);
 
+        // precise location params
+        if (userLocation) {
+            params.set("lat", userLocation.lat.toString());
+            params.set("lng", userLocation.lng.toString());
+        }
+
         // Update URL without reloading page
         const newUrl = params.toString() ? `?${params.toString()}` : "/";
         router.replace(newUrl, { scroll: false });
-    }, [activeCity, activeCategory, debouncedSearch, router]);
+    }, [activeCity, activeCategory, debouncedSearch, userLocation, router]);
 
 
     // Cursor-based pagination state
@@ -82,7 +101,7 @@ export default function HomeClient() {
     const [postedToday, setPostedToday] = useState(false);
     const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
-    // Detect visitor location to auto-select city
+    // Detect visitor location to auto-select city AND set exact coords
     const detectVisitorLocation = async () => {
         if (!navigator.geolocation) {
             alert("Geolocation is not supported by your browser");
@@ -95,6 +114,9 @@ export default function HomeClient() {
             async (position) => {
                 try {
                     const { latitude, longitude } = position.coords;
+
+                    // Set Exact Location
+                    setUserLocation({ lat: latitude, lng: longitude });
 
                     const response = await fetch(
                         `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
@@ -113,7 +135,9 @@ export default function HomeClient() {
                     if (matchedCity) {
                         setActiveCity(matchedCity);
                     } else {
-                        alert(`"${detectedCity}" is not in our supported cities yet. Showing all listings.`);
+                        // Keep current city or set to "Nearby" conceptual state?
+                        // For now we just alert but the `userLocation` state will drive the API results.
+                        if (!activeCity) alert(`Showing results near you (Approx ${detectedCity}).`);
                     }
                 } catch (error) {
                     console.error("Location detection error:", error);
@@ -175,6 +199,12 @@ export default function HomeClient() {
             if (activeCategory !== "All") params.set("category", activeCategory);
             if (debouncedSearch) params.set("search", debouncedSearch);
 
+            // Pass Lat/Lng if available
+            if (userLocation) {
+                params.set("lat", userLocation.lat.toString());
+                params.set("lng", userLocation.lng.toString());
+            }
+
             try {
                 const res = await fetch(`/api/posts?${params.toString()}`);
                 const fetchedPosts = await res.json();
@@ -201,7 +231,7 @@ export default function HomeClient() {
         };
 
         fetchInitial();
-    }, [activeCategory, activeCity, debouncedSearch]);
+    }, [activeCategory, activeCity, debouncedSearch, userLocation]);
 
     // Load more function
     const loadMore = async () => {
@@ -212,6 +242,10 @@ export default function HomeClient() {
         if (activeCity) params.set("city", activeCity);
         if (activeCategory !== "All") params.set("category", activeCategory);
         if (debouncedSearch) params.set("search", debouncedSearch);
+        if (userLocation) {
+            params.set("lat", userLocation.lat.toString());
+            params.set("lng", userLocation.lng.toString());
+        }
         params.set("cursor", nextCursor);
 
         try {
@@ -321,6 +355,8 @@ export default function HomeClient() {
                     </Link>
                 </div>
             </header>
+
+            <FirebaseTracker city={activeCity} />
 
             {/* Main */}
             <main className="flex-grow py-2 md:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 px-4 md:px-0">
@@ -440,7 +476,10 @@ export default function HomeClient() {
                             <div className="relative inline-block text-left">
                                 <select
                                     value={activeCity || "All"}
-                                    onChange={(e) => setActiveCity(e.target.value === "All" ? "" : e.target.value)}
+                                    onChange={(e) => {
+                                        setActiveCity(e.target.value === "All" ? "" : e.target.value);
+                                        setUserLocation(null); // Clear precise location when manually selecting city
+                                    }}
                                     className="appearance-none bg-white font-bold text-xs uppercase tracking-wider pl-3 pr-8 py-1.5 border border-gray-300 rounded hover:border-black focus:outline-none cursor-pointer"
                                 >
                                     <option value="All">All Cities</option>
@@ -562,14 +601,14 @@ export default function HomeClient() {
                                     <>
                                         {isGridView ? (
                                             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                                                {(filteredPosts.length > 0 ? filteredPosts : posts).map((post) => (
-                                                    <GridPostCard key={post.id} post={post} />
+                                                {(filteredPosts.length > 0 ? filteredPosts : posts).map((post, index) => (
+                                                    <GridPostCard key={post.id} post={post} priority={index < 4} />
                                                 ))}
                                             </div>
                                         ) : (
                                             <div className="space-y-0">
-                                                {(filteredPosts.length > 0 ? filteredPosts : posts).map((post) => (
-                                                    <PostCard key={post.id} post={post} />
+                                                {(filteredPosts.length > 0 ? filteredPosts : posts).map((post, index) => (
+                                                    <PostCard key={post.id} post={post} priority={index < 4} />
                                                 ))}
                                             </div>
                                         )}

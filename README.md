@@ -1,20 +1,41 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Freepo.in - Deployment & Maintenance Guide
 
-# Run and deploy your AI Studio app
+## Overview
+This is a Next.js 14 protected with basic spam prevention and optimized for performance. 
 
-This contains everything you need to run your app locally.
+## Environment Variables
+Ensure these are set in Vercel (or `.env.local` for dev):
 
-View your app in AI Studio: https://ai.studio/apps/drive/1ErP0N1w7sdtdkwu3KSTR53Srp7O85XS_
+```bash
+# Database (Turso/LibSQL)
+TURSO_DATABASE_URL=libsql://[your-db].turso.io
+TURSO_AUTH_TOKEN=[your-token]
 
-## Run Locally
+# Storage (Cloudflare R2)
+R2_ENDPOINT=https://[account-id].r2.cloudflarestorage.com
+R2_ACCESS_KEY_ID=[key-id]
+R2_SECRET_ACCESS_KEY=[secret-key]
+R2_BUCKET=[bucket-name]
+R2_PUBLIC_URL=https://pub-[id].r2.dev
 
-**Prerequisites:**  Node.js
+# Security
+# No specific secrets needed for the basic build unless you add Auth later.
+```
 
+## Deployment (Vercel)
+1.  Connect your GitHub repository to Vercel.
+2.  Add the Environment Variables above.
+3.  Deploy.
+4.  **Build Command**: `next build` (default)
+5.  **Output Directory**: `.next` (default)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Maintenance (6-Month Freeze)
+-   **Database**: The Turso database is serverless. Monitor usage on Turso dashboard to stay within free tier (writes are minimized).
+-   **Spam**: A basic IP-based rate limiter (5 posts/min) is active in `/api/posts`.
+-   **Storage**: R2 is cheap/free for high volume. Images are compressed to WebP (max 1200x1200px) before upload to save space.
+-   **SEO**: SEO is fully automated. Sitemaps regenerate on request.
+
+## Commands
+-   `npm run dev`: Start local server
+-   `npm run build`: Production build
+-   `npm start`: Start production server

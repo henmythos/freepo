@@ -11,9 +11,10 @@ import { Eye } from "lucide-react";
 
 interface PostCardProps {
   post: Post;
+  priority?: boolean;
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, priority = false }: PostCardProps) {
   const slug = generateSlug(post.title, post.city, post.category);
 
   // Check if post is less than 24 hours old
@@ -31,7 +32,7 @@ export default function PostCard({ post }: PostCardProps) {
               width={96}
               height={96}
               className="w-full h-full object-cover"
-              loading="lazy"
+              priority={priority}
             />
             {isNew && (
               <div className="absolute top-1 left-1 bg-green-600 text-white text-[8px] font-bold px-1.5 py-0.5 uppercase tracking-wide">

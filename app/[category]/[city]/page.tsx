@@ -113,8 +113,53 @@ export default async function SEOCategoryPage({ params }: PageProps) {
     // Dynamic SEO Intro Text
     const introText = `Looking to **sell used cars**, **mobiles**, or **bikes** in ${cityTitle}? Freepo.in is your best ${category} marketplace in ${cityTitle}. Post free ads to reach thousands of buyers. Find the latest ${category} listings including private sales, verified options, and more across all localities in ${cityTitle}.`;
 
+    // Schema Markup
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": `${categoryTitle} in ${cityTitle}`,
+        "description": introText,
+        "url": `https://freepo.in/${category}/${city}`,
+        "breadcrumb": {
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+                {
+                    "@type": "ListItem",
+                    "position": 1,
+                    "name": "Home",
+                    "item": "https://freepo.in"
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 2,
+                    "name": cityTitle,
+                    "item": `https://freepo.in/${city}` // fallback or use query
+                },
+                {
+                    "@type": "ListItem",
+                    "position": 3,
+                    "name": categoryTitle,
+                    "item": `https://freepo.in/${category}/${city}`
+                }
+            ]
+        },
+        "mainEntity": {
+            "@type": "ItemList",
+            "itemListElement": posts.map((post, index) => ({
+                "@type": "ListItem",
+                "position": index + 1,
+                "url": `https://freepo.in/item/${post.id}`, // technically slug is needed but using ID as placeholder or fix if slug available
+                "name": post.title
+            }))
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
             <div className="max-w-3xl mx-auto py-8 px-4">
                 <Link
                     href="/"

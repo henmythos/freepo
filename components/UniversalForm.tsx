@@ -33,6 +33,13 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
         try {
           const { latitude, longitude } = position.coords;
 
+          // Save accurate coordinates
+          setFormData((prev) => ({
+            ...prev,
+            latitude,
+            longitude
+          }));
+
           // Use BigDataCloud free reverse geocoding API (no API key required)
           const response = await fetch(
             `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
@@ -382,14 +389,17 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
             type="button"
             onClick={detectLocation}
             disabled={isDetectingLocation}
-            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50"
+            className={`flex items-center gap-1 text-xs font-medium disabled:opacity-50 ${formData.latitude ? "text-green-600 hover:text-green-800" : "text-blue-600 hover:text-blue-800"
+              }`}
           >
             {isDetectingLocation ? (
               <Loader2 className="animate-spin" size={14} />
+            ) : formData.latitude ? (
+              <MapPin size={14} className="fill-green-600" />
             ) : (
               <MapPin size={14} />
             )}
-            {isDetectingLocation ? "Detecting..." : "Detect Location"}
+            {isDetectingLocation ? "Detecting..." : formData.latitude ? "Location Pinned ✓" : "Pin Exact Location"}
           </button>
         </div>
         <select

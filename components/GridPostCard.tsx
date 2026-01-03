@@ -10,9 +10,10 @@ import { formatPrice } from "@/lib/priceUtils";
 
 interface GridPostCardProps {
     post: Post;
+    priority?: boolean;
 }
 
-export default function GridPostCard({ post }: GridPostCardProps) {
+export default function GridPostCard({ post, priority = false }: GridPostCardProps) {
     const slug = generateSlug(post.title, post.city, post.category);
 
     // Check if post is less than 24 hours old
@@ -31,7 +32,7 @@ export default function GridPostCard({ post }: GridPostCardProps) {
                             fill
                             className="object-cover"
                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                            loading="lazy"
+                            priority={priority}
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 text-xs uppercase font-bold tracking-widest">

@@ -36,7 +36,10 @@ async function ensureTable() {
       image3_alt TEXT,
       image4_alt TEXT,
       image5_alt TEXT,
-      locality TEXT
+      locality TEXT,
+      contact_preference TEXT DEFAULT 'both',
+      latitude REAL,
+      longitude REAL
     );
   `);
 
@@ -53,7 +56,9 @@ async function ensureTable() {
         "image4_alt TEXT",
         "image5_alt TEXT",
         "contact_preference TEXT DEFAULT 'both'",
-        "locality TEXT"
+        "locality TEXT",
+        "latitude REAL",
+        "longitude REAL"
     ];
 
     for (const col of columnsToAdd) {
@@ -76,6 +81,8 @@ async function ensureTable() {
 
 }
 
+import { rateLimiter } from "@/lib/rate-limit";
+
 export async function GET(request: NextRequest) {
     try {
         const db = getDB();
@@ -87,6 +94,10 @@ export async function GET(request: NextRequest) {
         const search = searchParams.get("search");
         const cursor = searchParams.get("cursor"); // TIMESTAMP for pagination
         const limit = Math.min(parseInt(searchParams.get("limit") || "20"), 50); // Default 20 posts
+
+        // Geolocation params
+        const lat = parseFloat(searchParams.get("lat") || "");
+        const lng = parseFloat(searchParams.get("lng") || "");
 
         // Single post fetch
         if (id) {
@@ -104,10 +115,26 @@ export async function GET(request: NextRequest) {
         let sql = "SELECT * FROM posts WHERE 1=1";
         const args: (string | number)[] = [];
 
-        if (city) {
+        // Geolocation Logic (Bounding Box)
+        // Optimization: If lat/lng provided, use bounding box to filter aggressively
+        if (!isNaN(lat) && !isNaN(lng)) {
+            // Approx 50km radius box (1 deg lat ~ 111km)
+            // 0.5 deg ~ 55km
+            const minLat = lat - 0.5;
+            const maxLat = lat + 0.5;
+            const minLng = lng - 0.5;
+            const maxLng = lng + 0.5;
+
+            sql += " AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?";
+            args.push(minLat, maxLat, minLng, maxLng);
+
+            // If Geo is active, we mostly care about location, but category filter is still supreme
+        } else if (city) {
+            // Fallback to city filter only if no Geo
             sql += " AND city = ?";
             args.push(city);
         }
+
         if (category && category !== "All") {
             sql += " AND category = ?";
             args.push(category);
@@ -130,13 +157,36 @@ export async function GET(request: NextRequest) {
             args.push(cursor);
         }
 
+        // Ordering
+        // If Geo-search, we prefer distance, but SQL might be hard without manual sort.
+        // Strategy: Get recent ones in bounding box, then sort by distance in memory/client.
+        // For simple SQL, we stick to created_at DESC to ensure freshness.
         sql += " ORDER BY created_at DESC LIMIT ?";
         args.push(limit);
 
         const result = await db.execute({ sql, args });
-        return NextResponse.json(result.rows, {
+
+        // Post-processing: Calculate distance if lat/lng available and sort
+        let rows = result.rows;
+        if (!isNaN(lat) && !isNaN(lng)) {
+            rows = rows.map(row => {
+                const r = row as any;
+                if (r.latitude && r.longitude) {
+                    // Euclidian distance approximation is sufficient for local sorting
+                    const dLat = r.latitude - lat;
+                    const dLng = r.longitude - lng;
+                    const distSq = (dLat * dLat) + (dLng * dLng);
+                    return { ...r, distSq };
+                }
+                return { ...r, distSq: 99999 }; // Far away if no coords
+            }).sort((a: any, b: any) => a.distSq - b.distSq);
+        }
+
+        return NextResponse.json(rows, {
             headers: {
                 // Cache for 60s public, allow stale for 5 mins (High Performance)
+                // Note: unique lat/lng combinations might bypass caching effectively, 
+                // but this headers instructs the browser/CDN.
                 "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
             },
         });
@@ -166,7 +216,9 @@ export async function POST(request: NextRequest) {
             city,
             contact_phone,
             description,
-            locality: rawLocality = null
+            locality: rawLocality = null,
+            latitude = null,
+            longitude = null
         } = body;
 
         const locality = rawLocality ? rawLocality.trim() : null;
@@ -266,14 +318,14 @@ export async function POST(request: NextRequest) {
           salary, price, job_type, experience, education, company_name, 
           expires_at, image1, image2, image3, image4, image5, 
           image1_alt, image2_alt, image3_alt, image4_alt, image5_alt, 
-          contact_preference, locality
+          contact_preference, locality, latitude, longitude
         )
         VALUES (
           ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
           datetime('now', '+30 days'), 
           ?, ?, ?, ?, ?, 
           ?, ?, ?, ?, ?, 
-          ?, ?
+          ?, ?, ?, ?
         );
       `,
             args: [
@@ -303,7 +355,9 @@ export async function POST(request: NextRequest) {
                 image4_alt_final,
                 image5_alt_final,
                 contact_preference,
-                locality
+                locality,
+                latitude,
+                longitude
             ],
         });
 
