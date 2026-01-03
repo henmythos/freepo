@@ -121,21 +121,21 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
             {/* Navigation Arrows - visible on mobile, hover on desktop */}
             <button
                 onClick={goToPrevious}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20"
                 aria-label="Previous image"
             >
                 <ChevronLeft size={20} />
             </button>
             <button
                 onClick={goToNext}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-70 md:opacity-0 md:group-hover:opacity-100 transition-opacity z-20"
                 aria-label="Next image"
             >
                 <ChevronRight size={20} />
             </button>
 
             {/* Dots Navigation */}
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-20">
                 {validImages.map((_, index) => (
                     <button
                         key={index}
@@ -150,7 +150,7 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
             </div>
 
             {/* Image Counter */}
-            <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full font-bold">
+            <div className="absolute top-3 right-3 bg-black/60 text-white text-xs px-2 py-1 rounded-full font-bold z-20">
                 {currentIndex + 1} / {validImages.length}
             </div>
         </div>

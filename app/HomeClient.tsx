@@ -821,6 +821,11 @@ export default function HomeClient() {
                                     </Link>
                                 </li>
                                 <li>
+                                    <Link href="/refund-policy" className="hover:text-black hover:underline">
+                                        Refund & Payment Policy
+                                    </Link>
+                                </li>
+                                <li>
                                     <a
                                         href="/api/sitemap"
                                         target="_blank"

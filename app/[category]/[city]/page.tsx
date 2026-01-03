@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getDB } from "@/lib/db";
-import { Post, Category } from "@/lib/types";
-import { SEO_CATEGORIES, SEO_CITIES } from "@/lib/constants";
+import { Post } from "@/lib/types";
+import { CATEGORIES, TOP_CITIES } from "@/lib/constants";
 import PostCard from "@/components/PostCard";
+import GridPostCard from "@/components/GridPostCard";
 import type { Metadata } from "next";
+import { ArrowLeft } from "lucide-react";
 
 interface PageProps {
     params: {
@@ -13,12 +15,20 @@ interface PageProps {
     };
 }
 
+const GRID_CATEGORIES = [
+    "cars",
+    "bikes",
+    "properties",
+    "rentals",
+    "buy-sell",
+    "electronics",
+];
+
 // Validate params
 function isValidParams(category: string, city: string) {
-    return (
-        SEO_CATEGORIES.includes(category.toLowerCase()) &&
-        SEO_CITIES.includes(city.toLowerCase())
-    );
+    const validCat = CATEGORIES.some(c => c.toLowerCase() === category.toLowerCase());
+    const validCity = TOP_CITIES.some(c => c.toLowerCase() === city.toLowerCase());
+    return validCat && validCity;
 }
 
 // Helper to format title case
@@ -29,23 +39,10 @@ function titleCase(str: string) {
 async function getPosts(category: string, city: string): Promise<Post[]> {
     try {
         const db = getDB();
-
-        // Map SEO category to DB category if needed
-        // For now we assume loose matching or we need to map "jobs" -> "Jobs"
-        // The DB likely has "Jobs", "properties" etc. 
-        // Let's try to find the matching Category enum from the string.
-        // Simple capitalization might work for single words, but check Edge cases.
-        // "buy-sell" -> "Buy/Sell", "lost-found" -> "Lost & Found"
-
         let dbCategory = titleCase(category);
         if (category === "buy-sell") dbCategory = "Buy/Sell";
         if (category === "lost-found") dbCategory = "Lost & Found";
-        if (category === "jobs") dbCategory = "Jobs"; // Enhance for clarity
-
-        // Adjust city casing if DB stores "Hyderabad" vs "hyderabad"
-        // Usually DB is case sensitive or we use LIKE. 
-        // Instructions said: "Use ONLY indexed fields... category = ? AND city = ?"
-        // Assuming DB stores Title Case based on `lib/constants.ts` (e.g. "Hyderabad", "Jobs")
+        if (category === "jobs") dbCategory = "Jobs";
 
         const dbCity = titleCase(city);
 
@@ -85,19 +82,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
 }
 
-import GridPostCard from "@/components/GridPostCard";
-
-const GRID_CATEGORIES = [
-    "cars",
-    "bikes",
-    "properties",
-    "rentals",
-    "buy-sell",
-    "electronics",
-];
-
-import { ArrowLeft } from "lucide-react";
-
 export default async function SEOCategoryPage({ params }: PageProps) {
     const { category, city } = params;
 
@@ -133,7 +117,7 @@ export default async function SEOCategoryPage({ params }: PageProps) {
                     "@type": "ListItem",
                     "position": 2,
                     "name": cityTitle,
-                    "item": `https://freepo.in/${city}` // fallback or use query
+                    "item": `https://freepo.in/${city}`
                 },
                 {
                     "@type": "ListItem",
@@ -148,7 +132,7 @@ export default async function SEOCategoryPage({ params }: PageProps) {
             "itemListElement": posts.map((post, index) => ({
                 "@type": "ListItem",
                 "position": index + 1,
-                "url": `https://freepo.in/item/${post.id}`, // technically slug is needed but using ID as placeholder or fix if slug available
+                "url": `https://freepo.in/item/${post.id}`,
                 "name": post.title
             }))
         }
@@ -210,7 +194,7 @@ export default async function SEOCategoryPage({ params }: PageProps) {
                         Other Cities
                     </h3>
                     <div className="flex flex-wrap gap-3">
-                        {SEO_CITIES.filter(c => c !== city).map((c) => (
+                        {TOP_CITIES.filter(c => c.toLowerCase() !== city.toLowerCase()).map((c) => (
                             <Link
                                 key={c}
                                 href={`/${category}/${c}`}

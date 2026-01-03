@@ -173,8 +173,42 @@ export async function GET(request: NextRequest) {
 
         const result = await db.execute({ sql, args });
 
-        // Post-processing: Calculate distance if lat/lng available and sort
         let rows = result.rows;
+
+        // Fallback Logic: If no results found with location filters, try global search
+        // Only on first page (no cursor) and if some location constraint (city or lat/lng) was present
+        if (rows.length === 0 && !cursor && (city || (!isNaN(lat) && !isNaN(lng)))) {
+            console.log("No results for location. Falling back to global search.");
+
+            let fallbackSql = "SELECT * FROM posts WHERE 1=1";
+            const fallbackArgs: (string | number)[] = [];
+
+            if (category && category !== "All") {
+                fallbackSql += " AND category = ?";
+                fallbackArgs.push(category);
+            }
+            if (phone) {
+                const cleanPhone = phone.replace(/\D/g, "").substring(0, 15);
+                fallbackSql += " AND contact_phone = ?";
+                fallbackArgs.push(cleanPhone);
+            }
+            if (search) {
+                fallbackSql += " AND (title LIKE ? OR description LIKE ?)";
+                const term = `%${search}%`;
+                fallbackArgs.push(term, term);
+            }
+
+            // We exclude cursor logic here as this is strictly for initial load fallback
+            // We do NOT include city or lat/lng constraints
+
+            fallbackSql += " ORDER BY created_at DESC LIMIT ?";
+            fallbackArgs.push(limit);
+
+            const fallbackResult = await db.execute({ sql: fallbackSql, args: fallbackArgs });
+            rows = fallbackResult.rows;
+        }
+
+        // Post-processing: Calculate distance if lat/lng available and sort
         if (!isNaN(lat) && !isNaN(lng)) {
             rows = rows.map(row => {
                 const r = row as any;
