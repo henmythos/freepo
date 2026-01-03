@@ -79,6 +79,19 @@ async function ensureTable() {
   `);
 
 
+    // Create Indexes for Performance & Cost Optimization
+    // These indexes prevent full table scans, significantly reducing "rows read" and billing costs.
+    try {
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_city ON posts(city)`);
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_location ON posts(latitude, longitude)`);
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_category ON posts(category)`);
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(created_at)`);
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_phone ON posts(contact_phone)`);
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_expires ON posts(expires_at)`);
+    } catch (e) {
+        console.error("Index creation failed (non-fatal):", e);
+    }
+
 }
 
 import { rateLimiter } from "@/lib/rate-limit";
@@ -128,7 +141,7 @@ export async function GET(request: NextRequest) {
             if (city) {
                 // Feature: "Nearby" + City Fallback
                 // Show posts within range OR in the city (even if no coords or far)
-                sql += " AND ((latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?) OR city = ?)";
+                sql += " AND ((latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?) OR LOWER(city) = LOWER(?))";
                 args.push(minLat, maxLat, minLng, maxLng, city);
             } else {
                 // Only "Nearby" (no specific city selected)
@@ -138,7 +151,7 @@ export async function GET(request: NextRequest) {
 
         } else if (city) {
             // Fallback to city filter only if no Geo
-            sql += " AND city = ?";
+            sql += " AND LOWER(city) = LOWER(?)";
             args.push(city);
         }
 
@@ -175,37 +188,84 @@ export async function GET(request: NextRequest) {
 
         let rows = result.rows;
 
-        // Fallback Logic: If no results found with location filters, try global search
-        // Only on first page (no cursor) and if some location constraint (city or lat/lng) was present
-        if (rows.length === 0 && !cursor && (city || (!isNaN(lat) && !isNaN(lng)))) {
-            console.log("No results for location. Falling back to global search.");
+        // Fallback Logic: If no results found with location filters, try Nearest City logic
+        // Only on first page (no cursor)
+        if (rows.length === 0 && !cursor) {
 
-            let fallbackSql = "SELECT * FROM posts WHERE 1=1";
-            const fallbackArgs: (string | number)[] = [];
+            // 1. Try finding 'Nearest City' if logic was Geo-based
+            if (!isNaN(lat) && !isNaN(lng)) {
+                try {
+                    console.log("No partial matches. Attempting Nearest City Fallback...");
+                    // Find the single closest post with a city
+                    const cityQuery = `
+                        SELECT city, ((latitude - ?) * (latitude - ?) + (longitude - ?) * (longitude - ?)) as distSq
+                        FROM posts
+                        WHERE latitude IS NOT NULL AND longitude IS NOT NULL
+                        ORDER BY distSq ASC
+                        LIMIT 1
+                    `;
+                    const cityRes = await db.execute({ sql: cityQuery, args: [lat, lat, lng, lng] });
 
-            if (category && category !== "All") {
-                fallbackSql += " AND category = ?";
-                fallbackArgs.push(category);
+                    if (cityRes.rows.length > 0) {
+                        const nearestCity = cityRes.rows[0].city as string;
+                        console.log("Found Nearest City:", nearestCity);
+
+                        let fallbackSql = "SELECT * FROM posts WHERE LOWER(city) = LOWER(?)";
+                        const fallbackArgs: (string | number)[] = [nearestCity];
+
+                        if (category && category !== "All") {
+                            fallbackSql += " AND category = ?";
+                            fallbackArgs.push(category);
+                        }
+                        // Reuse search but ignore lat/lng here
+                        if (search) {
+                            fallbackSql += " AND (title LIKE ? OR description LIKE ?)";
+                            const term = `%${search}%`;
+                            fallbackArgs.push(term, term);
+                        }
+
+                        fallbackSql += " ORDER BY created_at DESC LIMIT ?";
+                        fallbackArgs.push(limit);
+
+                        const fallbackResult = await db.execute({ sql: fallbackSql, args: fallbackArgs });
+                        rows = fallbackResult.rows;
+                    }
+                } catch (err) {
+                    console.error("Nearest City Fallback Error", err);
+                }
             }
-            if (phone) {
-                const cleanPhone = phone.replace(/\D/g, "").substring(0, 15);
-                fallbackSql += " AND contact_phone = ?";
-                fallbackArgs.push(cleanPhone);
+
+            // 2. Global Fallback (only if Nearest City failed or wasn't applicable)
+            if (rows.length === 0 && (city || (!isNaN(lat) && !isNaN(lng)))) {
+                console.log("No results for location. Falling back to global search.");
+
+                let fallbackSql = "SELECT * FROM posts WHERE 1=1";
+                const fallbackArgs: (string | number)[] = [];
+
+                if (category && category !== "All") {
+                    fallbackSql += " AND category = ?";
+                    fallbackArgs.push(category);
+                }
+                if (phone) {
+                    const cleanPhone = phone.replace(/\D/g, "").substring(0, 15);
+                    fallbackSql += " AND contact_phone = ?";
+                    fallbackArgs.push(cleanPhone);
+                }
+                if (search) {
+                    fallbackSql += " AND (title LIKE ? OR description LIKE ?)";
+                    const term = `%${search}%`;
+                    fallbackArgs.push(term, term);
+                }
+
+                // We exclude cursor logic here as this is strictly for initial load fallback
+                // We do NOT include city or lat/lng constraints
+
+                fallbackSql += " ORDER BY created_at DESC LIMIT ?";
+                fallbackArgs.push(limit);
+
+                const fallbackResult = await db.execute({ sql: fallbackSql, args: fallbackArgs });
+                rows = fallbackResult.rows;
             }
-            if (search) {
-                fallbackSql += " AND (title LIKE ? OR description LIKE ?)";
-                const term = `%${search}%`;
-                fallbackArgs.push(term, term);
-            }
-
-            // We exclude cursor logic here as this is strictly for initial load fallback
-            // We do NOT include city or lat/lng constraints
-
-            fallbackSql += " ORDER BY created_at DESC LIMIT ?";
-            fallbackArgs.push(limit);
-
-            const fallbackResult = await db.execute({ sql: fallbackSql, args: fallbackArgs });
-            rows = fallbackResult.rows;
         }
 
         // Post-processing: Calculate distance if lat/lng available and sort
@@ -220,15 +280,18 @@ export async function GET(request: NextRequest) {
                     return { ...r, distSq };
                 }
                 return { ...r, distSq: 99999 }; // Far away if no coords
-            }).sort((a: any, b: any) => a.distSq - b.distSq);
+            }).sort((a: any, b: any) => {
+                const diff = a.distSq - b.distSq;
+                if (Math.abs(diff) > 0.0001) return diff;
+                // Fallback to Created At (Newest first)
+                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            });
         }
 
         return NextResponse.json(rows, {
             headers: {
-                // Cache for 60s public, allow stale for 5 mins (High Performance)
-                // Note: unique lat/lng combinations might bypass caching effectively, 
-                // but this headers instructs the browser/CDN.
-                "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+                // Cache for 15s public (balance between DB load & freshness)
+                "Cache-Control": "public, s-maxage=15, stale-while-revalidate=30",
             },
         });
     } catch (e: unknown) {

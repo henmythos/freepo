@@ -33,6 +33,7 @@ export default function GridPostCard({ post, priority = false }: GridPostCardPro
                             className="object-cover"
                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                             priority={priority}
+                            unoptimized
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 text-xs uppercase font-bold tracking-widest">

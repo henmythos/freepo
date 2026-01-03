@@ -33,23 +33,23 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "Max 5 images allowed" }, { status: 400 });
         }
 
-        const uploadedUrls: string[] = [];
-
-        for (const file of files) {
+        // Parallelize processing and uploading
+        const uploadPromises = files.map(async (file) => {
             if (!ALLOWED_TYPES.includes(file.type)) {
-                return NextResponse.json({ error: "Invalid file type. Only JPG, PNG, WEBP allowed." }, { status: 400 });
+                throw new Error(`Invalid file type: ${file.name}`);
             }
             if (file.size > MAX_SIZE) {
-                return NextResponse.json({ error: "File too large. Max 5MB." }, { status: 400 });
+                throw new Error(`File too large: ${file.name}`);
             }
 
             const buffer = Buffer.from(await file.arrayBuffer());
 
-            // Resize (preserve aspect ratio, no cropping) and compress to WebP
+            // Optimize/Normalize on Server (Security + Consistency)
+            // Even if client sends WebP, we re-process to strip metadata and ensure strict dimensions
             const processedBuffer = await sharp(buffer)
                 .resize(1200, 1200, {
-                    fit: "inside",           // Scales to fit within bounds, preserves aspect ratio
-                    withoutEnlargement: true // Don't upscale small images
+                    fit: "inside",
+                    withoutEnlargement: true
                 })
                 .toFormat("webp", { quality: 80 })
                 .toBuffer();
@@ -65,9 +65,10 @@ export async function POST(request: NextRequest) {
 
             await R2.send(command);
 
-            const publicUrl = `${process.env.R2_PUBLIC_URL}/${filename}`;
-            uploadedUrls.push(publicUrl);
-        }
+            return `${process.env.R2_PUBLIC_URL}/${filename}`;
+        });
+
+        const uploadedUrls = await Promise.all(uploadPromises);
 
         return NextResponse.json({ urls: uploadedUrls });
 

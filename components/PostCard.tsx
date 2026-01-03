@@ -33,6 +33,7 @@ export default function PostCard({ post, priority = false }: PostCardProps) {
               height={96}
               className="w-full h-full object-cover"
               priority={priority}
+              unoptimized
             />
             {isNew && (
               <div className="absolute top-1 left-1 bg-green-600 text-white text-[8px] font-bold px-1.5 py-0.5 uppercase tracking-wide">

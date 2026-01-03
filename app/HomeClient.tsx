@@ -128,16 +128,9 @@ export default function HomeClient() {
                     const detectedCity = data.city || data.locality || "";
 
                     // Match with TOP_CITIES
-                    const matchedCity = TOP_CITIES.find(
-                        (city) => city.toLowerCase() === detectedCity.toLowerCase()
-                    );
-
-                    if (matchedCity) {
-                        setActiveCity(matchedCity);
-                    } else {
-                        // Keep current city or set to "Nearby" conceptual state?
-                        // For now we just alert but the `userLocation` state will drive the API results.
-                        if (!activeCity) alert(`Showing results near you (Approx ${detectedCity}).`);
+                    // Always set the detected city, enabling City OR Nearby search
+                    if (detectedCity) {
+                        setActiveCity(detectedCity);
                     }
                 } catch (error) {
                     console.error("Location detection error:", error);
@@ -483,6 +476,10 @@ export default function HomeClient() {
                                     className="appearance-none bg-white font-bold text-xs uppercase tracking-wider pl-3 pr-8 py-1.5 border border-gray-300 rounded hover:border-black focus:outline-none cursor-pointer"
                                 >
                                     <option value="All">All Cities</option>
+                                    {/* Show dynamically detected city if not in top cities */}
+                                    {activeCity && !TOP_CITIES.includes(activeCity) && (
+                                        <option value={activeCity}>{activeCity}</option>
+                                    )}
                                     {TOP_CITIES.map(city => (
                                         <option key={city} value={city}>{city}</option>
                                     ))}
