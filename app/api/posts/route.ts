@@ -125,10 +125,17 @@ export async function GET(request: NextRequest) {
             const minLng = lng - 0.5;
             const maxLng = lng + 0.5;
 
-            sql += " AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?";
-            args.push(minLat, maxLat, minLng, maxLng);
+            if (city) {
+                // Feature: "Nearby" + City Fallback
+                // Show posts within range OR in the city (even if no coords or far)
+                sql += " AND ((latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?) OR city = ?)";
+                args.push(minLat, maxLat, minLng, maxLng, city);
+            } else {
+                // Only "Nearby" (no specific city selected)
+                sql += " AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?";
+                args.push(minLat, maxLat, minLng, maxLng);
+            }
 
-            // If Geo is active, we mostly care about location, but category filter is still supreme
         } else if (city) {
             // Fallback to city filter only if no Geo
             sql += " AND city = ?";
