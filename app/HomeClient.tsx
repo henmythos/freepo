@@ -290,7 +290,7 @@ export default function HomeClient() {
         } else if (activeCategory && activeCategory !== "All") {
             return `Post Free ${activeCategory} Ads in India`;
         }
-        return "Post Free Ads in India";
+        return "Freepo.in";
     };
 
     const getDynamicSubTitle = () => {
