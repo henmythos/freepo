@@ -305,9 +305,14 @@ export default function HomeClient() {
             {/* Header */}
             <header className="border-b-4 border-black py-2 md:py-6 text-center relative px-4">
                 <Link href="/" className="block">
-                    <h1 className="font-serif text-3xl md:text-6xl font-black tracking-tighter uppercase mb-1 md:mb-2 leading-none break-words">
-                        {getDynamicTitle()}
+                    <h1 className="font-serif text-3xl md:text-6xl font-black tracking-tighter uppercase mb-0 leading-none break-words">
+                        FREEPO.IN
                     </h1>
+                    {getDynamicTitle() !== "Freepo.in" && (
+                        <h2 className="text-xs md:text-sm font-bold uppercase tracking-widest text-gray-500 mt-1">
+                            {getDynamicTitle()}
+                        </h2>
+                    )}
                 </Link>
 
                 <div className="absolute top-0 left-0 w-full h-1 bg-black"></div>
