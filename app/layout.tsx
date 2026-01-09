@@ -16,11 +16,11 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-    title: "Post Free Ads in India - Buy, Sell, Rent & Jobs | Freepo.in",
+    title: "Freepo.in | Free Classifieds India - Jobs, Rentals, Properties, Cars",
     description: "Post free classified ads in India. Find jobs near me, rentals, properties, cars, bikes & more in Mumbai, Delhi, Bangalore, Hyderabad, Chennai. No login required, 100% free forever.",
     keywords: "classifieds India, free classifieds India, jobs near me India, rentals India, Hyderabad classifieds, city listings India, post free ad India, Mumbai jobs, Delhi rentals, Bangalore classifieds, Chennai properties, buy sell India, used cars India, property India, local classifieds India, free ads India, jobs in Hyderabad, flats for rent India, second hand India, olx alternative India",
     openGraph: {
-        title: "Post Free Ads in India - Buy, Sell, Rent & Jobs | Freepo.in",
+        title: "Freepo.in | India's #1 Free Classifieds - Jobs, Rentals, Cars",
         description: "Post free classified ads in India. Find jobs, rentals, properties, cars & more. No login required.",
         url: 'https://freepo.in',
         siteName: 'Freepo.in',
