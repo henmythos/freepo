@@ -84,16 +84,7 @@ export default function HomeClient() {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
 
     // Feature 1: Client-Side City Filter
-    // We bind this to activeCity now for simpler UX, or keep separate?
-    // The user's request implies "selecting city" maps to the main filter. 
-    // In the original code, `selectedCity` (dropdown) and `activeCity` (sidebar) were slightly different but overlap.
-    // The sidebar set `activeCity` which triggered API calls. 
-    // The dropdown set `selectedCity` which did client-side filtering.
-    // To solve the persistence issue properly, we should UNIFY these. 
-    // If the user selects a city in dropdown, it should update URL and refetch/filter.
-    // Let's alias `selectedCity` to `activeCity` to fix the confusion and ensure URL sync works for both.
-
-    // So we remove distinct `selectedCity` state and just use `activeCity`.
+    // Unified activeCity handles both URL sync and filtering.
     const [localityFilter, setLocalityFilter] = useState("");
 
     // Quick Filters
@@ -155,11 +146,7 @@ export default function HomeClient() {
     const GRID_CATEGORIES = ["cars", "bikes", "properties", "rentals", "buy/sell", "electronics"];
     const isGridView = GRID_CATEGORIES.includes(activeCategory.toLowerCase());
 
-    // Derived filtered posts 
-    // We already filter by API for `activeCity`. 
-    // If the API returns city-specific posts, client-side filter is redundant unless for mixed results.
-    // Original code: `activeCity` passed to API. `selectedCity` filtered client side.
-    // We will use `activeCity` for EVERYTHING to ensure consistency.
+    // Derived filtered posts
     const filteredPosts = posts.filter(post => {
         // Locality Filter
         if (localityFilter) {
@@ -295,13 +282,15 @@ export default function HomeClient() {
     const isCityPage = pathname?.startsWith("/city/");
 
     const getDynamicTitle = () => {
-        if (isCityPage && activeCity) {
+        if (activeCity && activeCity !== "All") {
             if (activeCategory && activeCategory !== "All") {
-                return `${activeCategory} in ${activeCity}`;
+                return `Post Free ${activeCategory} Ads in ${activeCity}`;
             }
-            return `Classifieds in ${activeCity}`;
+            return `Post Free Ads in ${activeCity}`;
+        } else if (activeCategory && activeCategory !== "All") {
+            return `Post Free ${activeCategory} Ads in India`;
         }
-        return "Freepo.in";
+        return "Post Free Ads in India";
     };
 
     const getDynamicSubTitle = () => {
