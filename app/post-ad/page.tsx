@@ -1,20 +1,37 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import UniversalForm from "@/components/UniversalForm";
 import { CreatePostRequest } from "@/lib/types";
 import { ArrowLeft } from "lucide-react";
+import { Suspense } from "react";
 
-export default function PostAdPage() {
+function PostAdContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+
+    // Extract Plan Context
+    const planParam = searchParams.get("plan");
+    const paidParam = searchParams.get("paid");
+
+    // Validate Plan (simple check, backend does strict check)
+    const initialPlan = (planParam === "featured_30" || planParam === "featured_60") ? planParam : "free";
+    const isPaid = paidParam === "1";
 
     const handleSubmit = async (data: CreatePostRequest) => {
         try {
+            // Inject plan data if not present (UniversalForm handles this, but safety double-check)
+            const finalData = {
+                ...data,
+                listing_plan: initialPlan,
+                paid_verified: isPaid
+            };
+
             const res = await fetch("/api/posts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
+                body: JSON.stringify(finalData),
             });
 
             const result = await res.json();
@@ -42,8 +59,20 @@ export default function PostAdPage() {
                     <ArrowLeft size={16} className="mr-1" /> Back to Home
                 </Link>
 
-                <UniversalForm onSubmit={handleSubmit} />
+                <UniversalForm
+                    onSubmit={handleSubmit}
+                    initialPlan={initialPlan}
+                    isPaid={isPaid}
+                />
             </div>
         </div>
+    );
+}
+
+export default function PostAdPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <PostAdContent />
+        </Suspense>
     );
 }

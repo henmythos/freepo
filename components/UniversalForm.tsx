@@ -8,9 +8,11 @@ import Image from "next/image";
 
 interface UniversalFormProps {
   onSubmit: (data: CreatePostRequest) => Promise<void>;
+  initialPlan?: string;
+  isPaid?: boolean;
 }
 
-export default function UniversalForm({ onSubmit }: UniversalFormProps) {
+export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid = false }: UniversalFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
@@ -263,7 +265,11 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
         image4: uploadedImages[3] || undefined,
         image5: uploadedImages[4] || undefined,
       };
-      await onSubmit(finalData as CreatePostRequest);
+      await onSubmit({
+        ...finalData,
+        listing_plan: initialPlan,
+        paid_verified: isPaid
+      } as CreatePostRequest);
     } catch (error) {
       console.error("Submit error:", error);
     }
@@ -283,9 +289,50 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 border border-gray-200 shadow-lg">
-      <h2 className="font-serif text-2xl font-bold border-b-2 border-black pb-2">
-        Post Your Ad
+      <h2 className="font-serif text-2xl font-bold border-b-2 border-black pb-2 flex items-center justify-between">
+        <span>Post Your Ad</span>
+        {isPaid && (
+          <span className="text-xs bg-yellow-400 text-black px-2 py-1 uppercase tracking-widest border border-black">
+            {initialPlan === "featured_60" ? "Featured Plus" : "Featured"}
+          </span>
+        )}
       </h2>
+
+      {/* Premium Upgrade Options (Only show if NOT already paid) */}
+      {!isPaid && (
+        <div className="bg-gray-50 border border-gray-200 p-4 -mt-2">
+          <p className="text-xs font-bold uppercase text-gray-500 mb-3">Optional: Upgrade for better reach</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Plan 1 */}
+            <a href="https://rzp.io/rzp/freepo49" className="block border border-gray-300 bg-white p-3 hover:border-black transition group relative">
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-bold text-sm">Verified Listing</span>
+                <span className="bg-black text-white text-xs px-2 py-0.5 font-bold">₹49</span>
+              </div>
+              <ul className="text-[10px] text-gray-600 space-y-0.5 list-disc list-inside">
+                <li>Active for 60 Days</li>
+                <li>Verified Tick ✓</li>
+              </ul>
+              <div className="text-[10px] font-bold mt-2 text-blue-600 group-hover:underline">Select Plan →</div>
+            </a>
+
+            {/* Plan 2 */}
+            <a href="https://rzp.io/rzp/freepo99" className="block border border-yellow-400 bg-yellow-50 p-3 hover:border-black transition group relative">
+              <div className="absolute top-0 right-0 bg-yellow-400 text-[9px] px-1.5 font-bold uppercase">Best Value</div>
+              <div className="flex justify-between items-center mb-1">
+                <span className="font-bold text-sm">Featured</span>
+                <span className="bg-black text-white text-xs px-2 py-0.5 font-bold">₹99</span>
+              </div>
+              <ul className="text-[10px] text-gray-600 space-y-0.5 list-disc list-inside">
+                <li>Active for 90 Days</li>
+                <li>Featured on Homepage</li>
+                <li>Verified Tick ✓</li>
+              </ul>
+              <div className="text-[10px] font-bold mt-2 text-blue-600 group-hover:underline">Select Plan →</div>
+            </a>
+          </div>
+        </div>
+      )}
 
       {/* Honeypot */}
       <input
@@ -659,8 +706,14 @@ export default function UniversalForm({ onSubmit }: UniversalFormProps) {
         className="w-full bg-black text-white py-4 font-bold uppercase text-lg tracking-wider hover:bg-gray-800 transition disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {isSubmitting && <Loader2 className="animate-spin" size={20} />}
-        {isSubmitting ? "Publishing..." : "Publish Ad Free"}
+        {isSubmitting ? "Publishing..." : isPaid ? "Publish Premium listing" : "Publish Ad Free"}
       </button>
+
+      {isPaid && (
+        <p className="mt-2 text-center text-xs font-bold text-green-700 bg-green-50 p-2 border border-green-200 rounded">
+          ✓ Premium Listing Active: 30-Day limit bypassed.
+        </p>
+      )}
 
       <p className="text-xs text-gray-500 text-center">
         By posting, you agree to our Terms of Service. One post per phone number every 30 days.

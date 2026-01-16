@@ -24,7 +24,7 @@ async function ensureTable() {
       education TEXT,
       company_name TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      expires_at DATETIME,
+      expires_at DATETIME NOT NULL,
       views INTEGER DEFAULT 0,
       image1 TEXT,
       image2 TEXT,
@@ -39,7 +39,9 @@ async function ensureTable() {
       locality TEXT,
       contact_preference TEXT DEFAULT 'both',
       latitude REAL,
-      longitude REAL
+      longitude REAL,
+      listing_plan TEXT DEFAULT 'free',
+      is_featured BOOLEAN DEFAULT 0
     );
   `);
 
@@ -58,7 +60,9 @@ async function ensureTable() {
         "contact_preference TEXT DEFAULT 'both'",
         "locality TEXT",
         "latitude REAL",
-        "longitude REAL"
+        "longitude REAL",
+        "listing_plan TEXT DEFAULT 'free'",
+        "is_featured BOOLEAN DEFAULT 0"
     ];
 
     for (const col of columnsToAdd) {
@@ -88,6 +92,8 @@ async function ensureTable() {
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_date ON posts(created_at)`);
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_phone ON posts(contact_phone)`);
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_expires ON posts(expires_at)`);
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_plan ON posts(listing_plan)`);
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_featured ON posts(is_featured)`);
     } catch (e) {
         console.error("Index creation failed (non-fatal):", e);
     }
@@ -178,9 +184,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Ordering
-        // If Geo-search, we prefer distance, but SQL might be hard without manual sort.
-        // Strategy: Get recent ones in bounding box, then sort by distance in memory/client.
-        // For simple SQL, we stick to created_at DESC to ensure freshness.
+        // Global feed, stick to created_at DESC for freshness
         sql += " ORDER BY created_at DESC LIMIT ?";
         args.push(limit);
 
@@ -322,7 +326,9 @@ export async function POST(request: NextRequest) {
             description,
             locality: rawLocality = null,
             latitude = null,
-            longitude = null
+            longitude = null,
+            listing_plan = "free",
+            paid_verified = false // Internal boolean from frontend context
         } = body;
 
         const locality = rawLocality ? rawLocality.trim() : null;
@@ -353,26 +359,58 @@ export async function POST(request: NextRequest) {
         // Clean phone number
         const cleanPhone = contact_phone.replace(/\D/g, "").substring(0, 15);
 
-        // Check 30-day duplicate rule
-        const { rows } = await db.execute({
-            sql: "SELECT created_at FROM posts WHERE contact_phone = ? ORDER BY created_at DESC LIMIT 1",
-            args: [cleanPhone],
-        });
+        // --- PLAN & LIMIT LOGIC ---
+        let isFeatured = 0; // Use 0/1 for SQLite boolean safety
+        let expiresAtSql = "datetime('now', '+30 days')"; // Default 30 days
+        let finalListingPlan = listing_plan;
 
-        if (rows.length > 0) {
-            const lastPost = new Date((rows[0] as Record<string, unknown>).created_at as string);
-            const now = new Date();
-            const diffTime = Math.abs(now.getTime() - lastPost.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        // Verify Plan Context
+        if (!paid_verified) {
+            finalListingPlan = "free";
+        }
 
-            if (diffDays < 30) {
+        if (finalListingPlan === "featured_30") {
+            isFeatured = 1;
+            expiresAtSql = "datetime('now', '+30 days')";
+        } else if (finalListingPlan === "featured_60") {
+            isFeatured = 1;
+            expiresAtSql = "datetime('now', '+60 days')";
+        } else {
+            // Default Free
+            finalListingPlan = "free";
+            isFeatured = 0;
+            expiresAtSql = "datetime('now', '+30 days')";
+        }
+
+        // Check 30-day Limit Rule (ONLY for FREE plans)
+        // Rule: 1 free listing per user per 30 days
+        if (finalListingPlan === "free") {
+            const { rows } = await db.execute({
+                sql: `
+                    SELECT created_at FROM posts 
+                    WHERE contact_phone = ? 
+                    AND listing_plan = 'free' 
+                    AND created_at > datetime('now', '-30 days')
+                    LIMIT 1
+                `,
+                args: [cleanPhone],
+            });
+
+            if (rows.length > 0) {
+                // Found a free post in last 30 days
+                const lastPost = new Date((rows[0] as Record<string, unknown>).created_at as string);
+                const now = new Date();
+                const diffTime = Math.abs(now.getTime() - lastPost.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 const remaining = 30 - diffDays;
+
                 return NextResponse.json(
-                    { error: `This number already posted. Try again after ${remaining} days.` },
+                    { error: `Free listing limit reached (1 per 30 days). Please wait ${remaining} days or upgrade to a Premium Plan to post immediately.` },
                     { status: 429 }
                 );
             }
         }
+        // If Paid plan, we SKIP this check.
 
         // Generate ID
         const id = crypto.randomUUID();
@@ -422,14 +460,16 @@ export async function POST(request: NextRequest) {
           salary, price, job_type, experience, education, company_name, 
           expires_at, image1, image2, image3, image4, image5, 
           image1_alt, image2_alt, image3_alt, image4_alt, image5_alt, 
-          contact_preference, locality, latitude, longitude
+          contact_preference, locality, latitude, longitude,
+          listing_plan, is_featured
         )
         VALUES (
           ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
-          datetime('now', '+30 days'), 
+          ${expiresAtSql}, 
           ?, ?, ?, ?, ?, 
           ?, ?, ?, ?, ?, 
-          ?, ?, ?, ?
+          ?, ?, ?, ?,
+          ?, ?
         );
       `,
             args: [
@@ -461,7 +501,9 @@ export async function POST(request: NextRequest) {
                 contact_preference,
                 locality,
                 latitude,
-                longitude
+                longitude,
+                finalListingPlan,
+                isFeatured
             ],
         });
 
@@ -496,7 +538,10 @@ async function deleteImage(url: string | null) {
         const filename = url.split("/").pop();
         if (!filename) return;
         await R2.send(new DeleteObjectCommand({ Bucket: process.env.R2_BUCKET!, Key: filename }));
-    } catch (e) { console.error("R2 Delete Error", e); }
+    } catch (e) {
+        console.error("R2 Delete Error", e);
+        // We do NOT rethrow here, making cleanup idempotent/tolerant
+    }
 }
 
 export async function DELETE(request: NextRequest) {

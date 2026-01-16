@@ -21,8 +21,10 @@ export default function GridPostCard({ post, priority = false }: GridPostCardPro
 
     return (
         <Link href={`/item/${slug}-iid-${post.id}`} className="block h-full">
-            <article className={`border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col ${(post.category === "Jobs" || post.category === "Services") ? "bg-[#fffdf5]" : "bg-white"
-                }`}>
+            <article className={`border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col 
+                ${(post.category === "Jobs" || post.category === "Services") ? "bg-[#fffdf5]" : "bg-white"}
+                ${post.listing_plan === "featured_plus_60" ? "border-2 border-yellow-400 ring-1 ring-yellow-200" : ""}
+            `}>
                 {/* Image Section - Square & Contained */}
                 <div className="relative aspect-square bg-white overflow-hidden border-b border-gray-100">
                     {post.image1 ? (
@@ -43,6 +45,11 @@ export default function GridPostCard({ post, priority = false }: GridPostCardPro
                     {isNew && (
                         <div className="absolute top-2 left-2 bg-green-600 text-white text-[9px] font-bold px-2 py-1 uppercase tracking-wide shadow-sm">
                             Fresh
+                        </div>
+                    )}
+                    {post.is_featured && (
+                        <div className="absolute top-2 right-2 bg-yellow-400 text-black border border-black text-[9px] font-bold px-2 py-1 uppercase tracking-wide shadow-sm z-10">
+                            Featured
                         </div>
                     )}
                     {post.price && (

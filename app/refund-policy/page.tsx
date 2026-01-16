@@ -30,21 +30,35 @@ export default function RefundPolicy() {
                     <p>In the future, users may choose optional paid plans to increase listing visibility and trust:</p>
 
                     <div className="bg-gray-100 p-6 border-l-4 border-black my-6">
-                        <h4 className="mt-0">₹49 – Verified Listing</h4>
-                        <ul className="mb-0">
-                            <li>Listing active for 60 days</li>
-                            <li>Includes a <strong>Verified Tick</strong></li>
-                            <li>Improves credibility and trust for buyers</li>
-                        </ul>
+                        <div className="flex justify-between items-start flex-wrap gap-4">
+                            <div>
+                                <h4 className="mt-0">₹49 – Verified Listing</h4>
+                                <ul className="mb-0">
+                                    <li>Listing active for 60 days</li>
+                                    <li>Includes a <strong>Verified Tick</strong></li>
+                                    <li>Improves credibility and trust for buyers</li>
+                                </ul>
+                            </div>
+                            <a href="https://rzp.io/rzp/freepo49" className="bg-black text-white px-6 py-2 font-bold uppercase hover:bg-gray-800 transition text-sm">
+                                Buy Now
+                            </a>
+                        </div>
                     </div>
 
                     <div className="bg-gray-100 p-6 border-l-4 border-black my-6">
-                        <h4 className="mt-0">₹99 – Featured & Verified Listing</h4>
-                        <ul className="mb-0">
-                            <li>Listing active for 90 days</li>
-                            <li>Includes Verified Tick</li>
-                            <li><strong>Featured placement</strong> for higher visibility across the platform</li>
-                        </ul>
+                        <div className="flex justify-between items-start flex-wrap gap-4">
+                            <div>
+                                <h4 className="mt-0">₹99 – Featured & Verified Listing</h4>
+                                <ul className="mb-0">
+                                    <li>Listing active for 90 days</li>
+                                    <li>Includes Verified Tick</li>
+                                    <li><strong>Featured placement</strong> for higher visibility across the platform</li>
+                                </ul>
+                            </div>
+                            <a href="https://rzp.io/rzp/freepo99" className="bg-black text-white px-6 py-2 font-bold uppercase hover:bg-gray-800 transition text-sm">
+                                Buy Now
+                            </a>
+                        </div>
                     </div>
 
                     <p>Paid options are completely optional and will be clearly displayed before payment.</p>

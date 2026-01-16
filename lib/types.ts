@@ -46,6 +46,8 @@ export interface Post {
     contact_preference?: "call" | "whatsapp" | "both";
     latitude?: number;
     longitude?: number;
+    listing_plan?: string;
+    is_featured?: boolean;
 }
 
 export interface CreatePostRequest {
@@ -78,6 +80,8 @@ export interface CreatePostRequest {
     image4_alt?: string;
     image5_alt?: string;
     contact_preference?: "call" | "whatsapp" | "both";
+    listing_plan?: string;
+    paid_verified?: boolean;
 }
 
 export interface CityStats {
