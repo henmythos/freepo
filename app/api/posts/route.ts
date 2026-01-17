@@ -328,8 +328,10 @@ export async function POST(request: NextRequest) {
             latitude = null,
             longitude = null,
             listing_plan = "free",
-            paid_verified = false // Internal boolean from frontend context
+            paid_verified: initialPaidVerified = false // Internal boolean from frontend context
         } = body;
+
+        let paid_verified = initialPaidVerified;
 
         const locality = rawLocality ? rawLocality.trim() : null;
 
