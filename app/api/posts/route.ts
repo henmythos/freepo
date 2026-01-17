@@ -401,11 +401,13 @@ export async function POST(request: NextRequest) {
                 const lastPost = new Date((rows[0] as Record<string, unknown>).created_at as string);
                 const now = new Date();
                 const diffTime = Math.abs(now.getTime() - lastPost.getTime());
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 const remaining = 30 - diffDays;
 
+                const timeMsg = remaining <= 0 ? "less than 24 hours" : `${remaining} days`;
+
                 return NextResponse.json(
-                    { error: `Free listing limit reached (1 per 30 days). Please wait ${remaining} days or upgrade to a Premium Plan to post immediately.` },
+                    { error: `Free listing limit reached (1 per 30 days). Please wait ${timeMsg} or upgrade to a Premium Plan to post immediately.` },
                     { status: 429 }
                 );
             }

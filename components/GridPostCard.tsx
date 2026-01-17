@@ -21,9 +21,9 @@ export default function GridPostCard({ post, priority = false }: GridPostCardPro
 
     return (
         <Link href={`/item/${slug}-iid-${post.id}`} className="block h-full">
-            <article className={`border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col 
+            <article className={`border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col relative
                 ${(post.category === "Jobs" || post.category === "Services") ? "bg-[#fffdf5]" : "bg-white"}
-                ${post.listing_plan === "featured_plus_60" ? "border-2 border-yellow-400 ring-1 ring-yellow-200" : ""}
+                ${post.listing_plan === "featured_60" ? "border-2 border-yellow-400" : ""}
             `}>
                 {/* Image Section - Square & Contained */}
                 <div className="relative aspect-square bg-white overflow-hidden border-b border-gray-100">
@@ -47,7 +47,7 @@ export default function GridPostCard({ post, priority = false }: GridPostCardPro
                             Fresh
                         </div>
                     )}
-                    {post.is_featured && (
+                    {!!post.is_featured && post.listing_plan === "featured_60" && (
                         <div className="absolute top-2 right-2 bg-yellow-400 text-black border border-black text-[9px] font-bold px-2 py-1 uppercase tracking-wide shadow-sm z-10">
                             Featured
                         </div>

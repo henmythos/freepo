@@ -41,8 +41,15 @@ function PostAdContent() {
                 return;
             }
 
-            alert("Ad Published Successfully!");
-            router.push("/");
+            // Redirection Logic
+            if (finalData.listing_plan === "featured_30") {
+                window.location.href = "https://rzp.io/rzp/freepo49";
+            } else if (finalData.listing_plan === "featured_60") {
+                window.location.href = "https://rzp.io/rzp/freepo99";
+            } else {
+                alert("Ad Published Successfully!");
+                router.push("/");
+            }
         } catch (error) {
             console.error("Submit error:", error);
             alert("Failed to publish ad. Please try again.");

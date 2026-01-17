@@ -259,10 +259,14 @@ export default async function CityPage({ params }: PageProps) {
                         </h3>
                         <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs md:text-sm text-gray-600">
                             {cityData.neighborhoods.map(area => (
-                                <span key={area} className="flex items-center gap-1">
+                                <Link
+                                    key={area}
+                                    href={`/classifieds/${cityKey}/${area.toLowerCase().replace(/ /g, "-")}`}
+                                    className="flex items-center gap-1 hover:text-blue-600 hover:underline"
+                                >
                                     <MapPin size={10} className="text-gray-300" />
                                     {area}
-                                </span>
+                                </Link>
                             ))}
                         </div>
                         <div className="text-center mt-6 text-xs text-gray-400 max-w-2xl mx-auto">

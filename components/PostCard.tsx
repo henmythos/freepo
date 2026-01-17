@@ -24,7 +24,7 @@ export default function PostCard({ post, priority = false }: PostCardProps) {
     <Link href={`/item/${slug}-iid-${post.id}`} className="block">
       <article className={`border-b border-gray-200 py-3 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 
         ${(post.category === "Jobs" || post.category === "Services") ? "bg-[#fffdf5] px-2 -mx-2" : ""}
-        ${post.listing_plan === "featured_plus_60" ? "border-l-4 border-l-yellow-400 pl-3 bg-yellow-50/30" : ""}
+        ${post.listing_plan === "featured_60" ? "border-2 border-transparent bg-yellow-50/50 relative overflow-hidden [background-clip:padding-box] before:absolute before:inset-0 before:-z-10 before:rounded-sm before:bg-gradient-to-r before:from-[#FFD700] before:via-[#FDB931] before:to-[#FFD700] before:m-[-2px] before:content-['']" : ""}
       `}>
         {post.image1 && (
           <div className="relative w-24 h-24 flex-shrink-0 bg-[#f2f2f2] border border-gray-200 rounded-md overflow-hidden flex items-center justify-center">
@@ -59,7 +59,7 @@ export default function PostCard({ post, priority = false }: PostCardProps) {
               {isNew && !post.image1 && (
                 <span className="bg-green-600 text-white px-1.5 py-0.5 font-bold uppercase tracking-wide text-[8px]">Fresh</span>
               )}
-              {post.is_featured && (
+              {!!post.is_featured && post.listing_plan === "featured_60" && (
                 <span className="bg-yellow-400 text-black border border-black px-1.5 py-0.5 font-bold uppercase tracking-wide text-[8px]">Featured</span>
               )}
               <span>{post.locality ? `${post.city}, ${post.locality}` : post.city}</span>

@@ -65,6 +65,13 @@ export default function RefundPolicy() {
 
                     <h3>Refund Policy</h3>
                     <p><strong>Payments made for paid listings are generally non-refundable.</strong></p>
+
+                    <div className="bg-red-50 border border-red-200 p-4 rounded my-4 text-sm text-red-900">
+                        <strong>Transaction Failures:</strong> If money is debited from your account due to a technical error, app crash, or if the listing fails to post after payment, the amount will be automatically refunded to your original payment method within <strong>3 working days</strong>.
+                        <br /><br />
+                        For payment related issues, please contact us at: <a href="mailto:supthenexte@gmail.com" className="font-bold underline">supthenexte@gmail.com</a>
+                    </div>
+
                     <p>Refunds will not be provided in the following cases:</p>
                     <ul>
                         <li>Illegal listings</li>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 import { getDB } from "@/lib/db";
 import { CATEGORIES, TOP_CITIES } from "@/lib/constants";
+import { CITY_DATA } from "@/lib/cityData";
 import { generateSlug } from "@/lib/slugUtils";
 import { Post } from "@/lib/types"; // Import Post to cast properly
 
@@ -28,17 +29,35 @@ export async function GET() {
   <url><loc>${baseUrl}/refund-policy</loc><priority>0.3</priority></url>
   <url><loc>${baseUrl}/contact</loc><priority>0.3</priority></url>`;
 
-        // Add All Category + City pages (Full Coverage)
-        // Note: We use the full list now for maximum SEO coverage
+        // ALL City + Category pages
         CATEGORIES.forEach((cat) => {
             TOP_CITIES.forEach((city) => {
-                // simple loop over all combinations
                 xml += `
   <url>
     <loc>${baseUrl}/${encodeURIComponent(cat)}/${encodeURIComponent(city)}</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>`;
+            });
+        });
+
+        // Dynamic Locality Pages (Hyperlocal SEO)
+        // We generate URLs for top categories in each known neighborhood
+        const PRIORITY_CATS = ["Classifieds", "Jobs", "Properties", "Rentals"];
+        // "Classifieds" maps to "All" logic in our new page
+
+        Object.entries(CITY_DATA).forEach(([cityKey, data]) => {
+            data.neighborhoods.forEach(area => {
+                const areaSlug = area.toLowerCase().replace(/ /g, "-");
+
+                PRIORITY_CATS.forEach(cat => {
+                    xml += `
+  <url>
+    <loc>${baseUrl}/${cat.toLowerCase()}/${cityKey}/${areaSlug}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>`;
+                });
             });
         });
 
