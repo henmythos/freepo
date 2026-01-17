@@ -1,12 +1,49 @@
-import { redirect } from 'next/navigation';
+"use client";
 
-export const metadata = {
-    robots: {
-        index: false,
-        follow: false,
-    },
-};
+import UniversalForm from "@/components/UniversalForm";
+import { CreatePostRequest } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
-export default function Page() {
-    redirect('/post-ad?plan=featured_30&paid=1');
+export default function PaidVerifiedPage() {
+    const router = useRouter();
+    // This page is HIDDEN from navigation.
+    // Users only arrive here after successful payment on Razorpay.
+    // The Token MUST match the API server secret.
+    const SECRET_TOKEN = "freepo_secure_7734_hash";
+
+    const handlePostSubmit = async (data: CreatePostRequest) => {
+        try {
+            const res = await fetch("/api/posts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data),
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) {
+                alert(result.error || "Failed to publish ad");
+                return;
+            }
+
+            alert("Premium Ad Published Successfully! Verification Badge Active.");
+            router.push("/");
+        } catch (error) {
+            console.error("Submit error:", error);
+            alert("Failed to publish ad. Please try again.");
+        }
+    };
+
+    return (
+        <div className="min-h-screen bg-paper">
+            <div className="max-w-2xl mx-auto py-8 px-4">
+                <UniversalForm
+                    initialPlan="featured_30"  // ₹49 Plan
+                    isPaid={true}              // Unlocks UI
+                    securityToken={SECRET_TOKEN} // Authorizes API
+                    onSubmit={handlePostSubmit}
+                />
+            </div>
+        </div>
+    );
 }

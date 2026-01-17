@@ -24,7 +24,7 @@ function PostAdContent() {
             // Inject plan data if not present (UniversalForm handles this, but safety double-check)
             const finalData = {
                 ...data,
-                listing_plan: initialPlan,
+                listing_plan: data.listing_plan || initialPlan,
                 paid_verified: isPaid
             };
 

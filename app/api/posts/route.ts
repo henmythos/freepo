@@ -364,16 +364,33 @@ export async function POST(request: NextRequest) {
         let expiresAtSql = "datetime('now', '+30 days')"; // Default 30 days
         let finalListingPlan = listing_plan;
 
+        // SECURITY: Simple Token to protect 'paid_verified' from public manipulation
+        // In a real env, use process.env.PREMIUM_SECRET_KEY
+        const SERVER_SECRET_TOKEN = "freepo_secure_7734_hash";
+
         // Verify Plan Context
+        if (paid_verified) {
+            // If trying to be Verified, MUST have correct token
+            if (body.security_token !== SERVER_SECRET_TOKEN) {
+                console.warn(`[SECURITY FAIL] Unauthorized paid_verified request from IP: ${request.ip}`);
+                paid_verified = false; // Downgrade to Free
+                finalListingPlan = "free";
+            }
+        } else {
+            finalListingPlan = "free";
+        }
+
+        // Double check after security scan
         if (!paid_verified) {
             finalListingPlan = "free";
         }
 
         if (finalListingPlan === "featured_30") {
-            isFeatured = 1;
+            // Only active feature if PAID
+            isFeatured = paid_verified ? 1 : 0;
             expiresAtSql = "datetime('now', '+30 days')";
         } else if (finalListingPlan === "featured_60") {
-            isFeatured = 1;
+            isFeatured = paid_verified ? 1 : 0;
             expiresAtSql = "datetime('now', '+60 days')";
         } else {
             // Default Free

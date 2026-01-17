@@ -10,9 +10,10 @@ interface UniversalFormProps {
   onSubmit: (data: CreatePostRequest) => Promise<void>;
   initialPlan?: string;
   isPaid?: boolean;
+  securityToken?: string;
 }
 
-export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid = false }: UniversalFormProps) {
+export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid = false, securityToken }: UniversalFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
@@ -23,7 +24,24 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
 
   // New State for Paid Plans Flow
   const [showPlans, setShowPlans] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"free" | "featured_30" | "featured_60">("free");
+
+  // Default to initialPlan if paid, otherwise free
+  const [selectedPlan, setSelectedPlan] = useState<"free" | "featured_30" | "featured_60">(
+    (initialPlan === "featured_30" || initialPlan === "featured_60") ? initialPlan : "free"
+  );
+
+  // If this is a Paid Page, we lock the plan logic to the initialPlan passed by prop
+  const isPremiumUnlocked = isPaid && (initialPlan === "featured_30" || initialPlan === "featured_60");
+
+  const handlePlanClick = (plan: "featured_30" | "featured_60", url: string) => {
+    // If already paid (on secret page), do nothing or select (although it should be locked)
+    if (isPaid) return;
+
+    // If on Free page -> Redirect to Payment
+    if (confirm("You will be redirected to the secure payment page. After payment, you can post your Premium Ad.\n\nContinue?")) {
+      window.location.href = url;
+    }
+  };
 
   // Detect location and auto-fill city/locality
   const detectLocation = async () => {
@@ -328,10 +346,10 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
 
               {/* Plan 1: Verified (₹49) */}
               <div
-                onClick={() => setSelectedPlan(selectedPlan === "featured_30" ? "free" : "featured_30")}
+                onClick={() => handlePlanClick("featured_30", "https://rzp.io/rzp/freepo49")}
                 className={`border cursor-pointer p-4 relative transition-all ${selectedPlan === "featured_30"
-                    ? "border-black bg-blue-50 ring-1 ring-black"
-                    : "border-gray-200 hover:border-gray-400 bg-white"
+                  ? "border-black bg-blue-50 ring-1 ring-black"
+                  : "border-gray-200 hover:border-gray-400 bg-white"
                   }`}
               >
                 <div className="flex justify-between items-start mb-2">
@@ -360,10 +378,10 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
 
               {/* Plan 2: Featured (₹99) */}
               <div
-                onClick={() => setSelectedPlan(selectedPlan === "featured_60" ? "free" : "featured_60")}
+                onClick={() => handlePlanClick("featured_60", "https://rzp.io/rzp/freepo99")}
                 className={`border cursor-pointer p-4 relative transition-all ${selectedPlan === "featured_60"
-                    ? "border-yellow-500 bg-yellow-50 ring-1 ring-yellow-500"
-                    : "border-gray-200 hover:border-yellow-400 bg-white"
+                  ? "border-yellow-500 bg-yellow-50 ring-1 ring-yellow-500"
+                  : "border-gray-200 hover:border-yellow-400 bg-white"
                   }`}
               >
                 <div className="absolute -top-2.5 left-4 bg-yellow-400 text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest border border-black shadow-sm">
