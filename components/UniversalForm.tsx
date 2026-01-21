@@ -386,13 +386,20 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
                 {/* Plan 2: Featured (₹99) */}
                 <div
                   onClick={() => handlePlanClick("featured_plus_60", "https://rzp.io/rzp/freepo99")}
+                  style={selectedPlan === "featured_plus_60" ? {
+                    backgroundImage: "linear-gradient(#FFFDF5, #FFFDF5), linear-gradient(90deg, #FFD700, #FFB800, #FFD700)",
+                    backgroundOrigin: "padding-box, border-box",
+                    backgroundClip: "padding-box, border-box",
+                    border: "2px solid transparent",
+                    boxShadow: "0 0 15px rgba(255, 215, 0, 0.2)"
+                  } : {}}
                   className={`border cursor-pointer p-4 relative transition-all ${selectedPlan === "featured_plus_60"
-                    ? "border-yellow-500 bg-yellow-50 ring-1 ring-yellow-500"
+                    ? "" // Styles handled inline for gradient border
                     : "border-gray-200 hover:border-yellow-400 bg-white"
                     }`}
                 >
                   <div className="absolute -top-2.5 left-4 bg-yellow-400 text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest border border-black shadow-sm">
-                    Recommended
+                    BEST VISIBILITY
                   </div>
 
                   <div className="flex justify-between items-start mb-2 mt-1">

@@ -134,6 +134,23 @@ export async function GET(request: NextRequest) {
             return NextResponse.json(result.rows[0]);
         }
 
+        // Ad ID Lookup (Priority Search)
+        // Format: 6+ chars, Digits and Uppercase Letters only
+        if (search && /^[0-9A-Z]{6,}$/.test(search)) {
+            const result = await db.execute({
+                sql: "SELECT * FROM posts WHERE public_ad_id = ?",
+                args: [search.toUpperCase()]
+            });
+
+            // Return result immediately (found or empty)
+            // This intentionally bypasses all other filters (city, category, etc)
+            return NextResponse.json(result.rows, {
+                headers: {
+                    "Cache-Control": "public, s-maxage=15, stale-while-revalidate=30",
+                },
+            });
+        }
+
         // Build query
         let sql = "SELECT * FROM posts WHERE 1=1";
         const args: (string | number)[] = [];
