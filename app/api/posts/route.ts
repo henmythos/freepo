@@ -64,7 +64,7 @@ async function ensureTable() {
         "longitude REAL",
         "listing_plan TEXT DEFAULT 'free'",
         "is_featured BOOLEAN DEFAULT 0",
-        "public_ad_id TEXT UNIQUE"
+        "public_ad_id TEXT"
     ];
 
     for (const col of columnsToAdd) {
@@ -96,7 +96,8 @@ async function ensureTable() {
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_expires ON posts(expires_at)`);
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_plan ON posts(listing_plan)`);
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_featured ON posts(is_featured)`);
-        await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_ad_id ON posts(public_ad_id)`);
+        await db.execute(`CREATE UNIQUE INDEX IF NOT EXISTS idx_posts_ad_id ON posts(public_ad_id)`);
+        await db.execute(`CREATE UNIQUE INDEX IF NOT EXISTS idx_posts_public_ad_id ON posts(public_ad_id)`);
     } catch (e) {
         console.error("Index creation failed (non-fatal):", e);
     }
@@ -533,7 +534,6 @@ export async function POST(request: NextRequest) {
           ?, ?, ?, ?, ?, 
           ?, ?, ?, ?, ?, 
           ?, ?, ?, ?,
-          ?, ?, ?, ?,
           ?, ?, ?
         );
       `,
@@ -583,7 +583,7 @@ export async function POST(request: NextRequest) {
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Unknown error";
         console.error("[POST ERROR]", message);
-        return NextResponse.json({ error: message }, { status: 500 });
+        return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 });
     }
 }
 
