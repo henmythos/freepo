@@ -4,7 +4,6 @@ import { useState } from "react";
 import { CreatePostRequest, Category } from "@/lib/types";
 import { CATEGORIES, TOP_CITIES, JOB_TYPES } from "@/lib/constants";
 import { Loader2, ImagePlus, X, MapPin, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
-import Image from "next/image";
 
 interface UniversalFormProps {
   onSubmit: (data: CreatePostRequest) => Promise<void>;
@@ -25,19 +24,21 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
   // New State for Paid Plans Flow
   const [showPlans, setShowPlans] = useState(false);
 
-  // Default to initialPlan if paid, otherwise free
-  const [selectedPlan, setSelectedPlan] = useState<"free" | "featured_30" | "featured_60">(
-    (initialPlan === "featured_30" || initialPlan === "featured_60") ? initialPlan : "free"
+  // Default to initialPlan if it matches known valid plans
+  const [selectedPlan, setSelectedPlan] = useState<"free" | "verified_30" | "featured_plus_60">(
+    (initialPlan === "verified_30" || initialPlan === "featured_plus_60") ? initialPlan as any : "free"
   );
 
   // If this is a Paid Page, we lock the plan logic to the initialPlan passed by prop
-  const isPremiumUnlocked = isPaid && (initialPlan === "featured_30" || initialPlan === "featured_60");
+  const isPremiumUnlocked = isPaid && (initialPlan === "verified_30" || initialPlan === "featured_plus_60");
 
-  const handlePlanClick = (plan: "featured_30" | "featured_60", url: string) => {
+  const handlePlanClick = (plan: "verified_30" | "featured_plus_60", url: string) => {
     // If already paid (on secret page), do nothing or select (although it should be locked)
     if (isPaid) return;
 
     // If on Free page -> Redirect to Payment
+    // Urls updated to use the secret pages ultimately or direct payment link that leads to them
+    // The user provided RZP links directly.
     if (confirm("You will be redirected to the secure payment page. After payment, you can post your Premium Ad.\n\nContinue?")) {
       window.location.href = url;
     }
@@ -314,8 +315,13 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
   const getSubmitLabel = () => {
     if (isSubmitting) return "Processing...";
 
-    if (selectedPlan === "featured_30") return "Continue with Verified Listing";
-    if (selectedPlan === "featured_60") return "Continue with Featured Listing";
+    if (isPaid) {
+      if (initialPlan === "featured_plus_60") return "Publish Featured Plus Listing";
+      if (initialPlan === "verified_30") return "Publish Verified Listing";
+    }
+
+    if (selectedPlan === "verified_30") return "Continue with Verified Listing";
+    if (selectedPlan === "featured_plus_60") return "Continue with Featured Plus Listing";
 
     return "Publish Ad Free";
   };
@@ -329,92 +335,109 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
           <span>Post Your Ad</span>
         </h2>
 
-        {/* Optional Premium Toggle */}
-        <div className="mt-3">
-          <button
-            type="button"
-            onClick={() => setShowPlans(!showPlans)}
-            className="flex items-center gap-2 text-sm font-bold text-blue-700 hover:text-blue-900 transition-colors"
-          >
-            Try Premium Listing
-            {showPlans ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
+        {/* Optional Premium Toggle - HIDDEN IF PAID */}
+        {!isPaid && (
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => setShowPlans(!showPlans)}
+              className="flex items-center gap-2 text-sm font-bold text-blue-700 hover:text-blue-900 transition-colors"
+            >
+              Try Premium Listing
+              {showPlans ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </button>
 
-          {/* Collapsible Plans Section */}
-          {showPlans && (
-            <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
+            {/* Collapsible Plans Section */}
+            {showPlans && (
+              <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
 
-              {/* Plan 1: Verified (₹49) */}
-              <div
-                onClick={() => handlePlanClick("featured_30", "https://rzp.io/rzp/freepo49")}
-                className={`border cursor-pointer p-4 relative transition-all ${selectedPlan === "featured_30"
-                  ? "border-black bg-blue-50 ring-1 ring-black"
-                  : "border-gray-200 hover:border-gray-400 bg-white"
-                  }`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <div className="font-bold text-sm uppercase tracking-wide">
-                      Verified Listing
+                {/* Plan 1: Verified (₹49) */}
+                <div
+                  onClick={() => handlePlanClick("verified_30", "https://rzp.io/rzp/freepo49")}
+                  className={`border cursor-pointer p-4 relative transition-all ${selectedPlan === "verified_30"
+                    ? "border-black bg-blue-50 ring-1 ring-black"
+                    : "border-gray-200 hover:border-gray-400 bg-white"
+                    }`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <div className="font-bold text-sm uppercase tracking-wide">
+                        Verified Listing
+                      </div>
+                      <div className="text-[10px] text-gray-500 font-medium">Best for individuals & small businesses</div>
                     </div>
-                    <div className="text-[10px] text-gray-500 font-medium">Best for individuals & small businesses</div>
+                    <div className="bg-black text-white text-xs px-2 py-1 font-bold">₹49</div>
                   </div>
-                  <div className="bg-black text-white text-xs px-2 py-1 font-bold">₹49</div>
-                </div>
 
-                <ul className="text-xs text-gray-700 space-y-1.5 mt-3">
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Mobile Number Verified</li>
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Verified Tick on Listing</li>
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Active for 30 Days</li>
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Improves Trust & Credibility</li>
-                </ul>
+                  <ul className="text-xs text-gray-700 space-y-1.5 mt-3">
+                    <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Mobile Number Verified</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Verified Tick on Listing</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Active for 30 Days</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Improves Trust & Credibility</li>
+                  </ul>
 
-                {selectedPlan === "featured_30" && (
-                  <div className="absolute top-2 right-2 text-blue-600">
-                    <CheckCircle2 size={18} className="fill-blue-100" />
-                  </div>
-                )}
-              </div>
-
-              {/* Plan 2: Featured (₹99) */}
-              <div
-                onClick={() => handlePlanClick("featured_60", "https://rzp.io/rzp/freepo99")}
-                className={`border cursor-pointer p-4 relative transition-all ${selectedPlan === "featured_60"
-                  ? "border-yellow-500 bg-yellow-50 ring-1 ring-yellow-500"
-                  : "border-gray-200 hover:border-yellow-400 bg-white"
-                  }`}
-              >
-                <div className="absolute -top-2.5 left-4 bg-yellow-400 text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest border border-black shadow-sm">
-                  Recommended
-                </div>
-
-                <div className="flex justify-between items-start mb-2 mt-1">
-                  <div>
-                    <div className="font-bold text-sm uppercase tracking-wide">
-                      Featured & Verified
+                  {selectedPlan === "verified_30" && (
+                    <div className="absolute top-2 right-2 text-blue-600">
+                      <CheckCircle2 size={18} className="fill-blue-100" />
                     </div>
-                    <div className="text-[10px] text-gray-500 font-medium">For businesses & real estate</div>
-                  </div>
-                  <div className="bg-black text-white text-xs px-2 py-1 font-bold">₹99</div>
+                  )}
                 </div>
 
-                <ul className="text-xs text-gray-700 space-y-1.5 mt-3">
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Mobile Number Verified</li>
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> <b>Featured Placement</b> (Top)</li>
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Higher Visibility & Attention</li>
-                  <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Active for 60 Days</li>
-                </ul>
-
-                {selectedPlan === "featured_60" && (
-                  <div className="absolute top-2 right-2 text-yellow-600">
-                    <CheckCircle2 size={18} className="fill-yellow-100" />
+                {/* Plan 2: Featured (₹99) */}
+                <div
+                  onClick={() => handlePlanClick("featured_plus_60", "https://rzp.io/rzp/freepo99")}
+                  className={`border cursor-pointer p-4 relative transition-all ${selectedPlan === "featured_plus_60"
+                    ? "border-yellow-500 bg-yellow-50 ring-1 ring-yellow-500"
+                    : "border-gray-200 hover:border-yellow-400 bg-white"
+                    }`}
+                >
+                  <div className="absolute -top-2.5 left-4 bg-yellow-400 text-[9px] font-bold px-2 py-0.5 uppercase tracking-widest border border-black shadow-sm">
+                    Recommended
                   </div>
-                )}
-              </div>
 
-            </div>
-          )}
-        </div>
+                  <div className="flex justify-between items-start mb-2 mt-1">
+                    <div>
+                      <div className="font-bold text-sm uppercase tracking-wide">
+                        Featured Plus
+                      </div>
+                      <div className="text-[10px] text-gray-500 font-medium">For businesses & real estate</div>
+                    </div>
+                    <div className="bg-black text-white text-xs px-2 py-1 font-bold">₹99</div>
+                  </div>
+
+                  <ul className="text-xs text-gray-700 space-y-1.5 mt-3">
+                    <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Mobile Number Verified</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> <b>Featured Placement</b> (Top)</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Listing Highlight & Gold Border</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 size={12} className="text-green-600" /> Active for 60 Days</li>
+                  </ul>
+
+                  {selectedPlan === "featured_plus_60" && (
+                    <div className="absolute top-2 right-2 text-yellow-600">
+                      <CheckCircle2 size={18} className="fill-yellow-100" />
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            )}
+          </div>
+        )}
+
+        {isPaid && initialPlan === "verified_30" && (
+          <div className="mt-3 bg-blue-50 border border-blue-200 p-3 rounded">
+            <p className="font-bold text-sm text-blue-800">✓ Verified Listing Plan (₹49)</p>
+            <p className="text-xs text-blue-600">You are posting as a Verified user.</p>
+          </div>
+        )}
+
+        {isPaid && initialPlan === "featured_plus_60" && (
+          <div className="mt-3 bg-yellow-50 border border-yellow-200 p-3 rounded">
+            <p className="font-bold text-sm text-yellow-800">✓ Featured Plus Plan (₹99)</p>
+            <p className="text-xs text-yellow-600">Your ad will be featured at the top with premium styling.</p>
+          </div>
+        )}
+
       </div>
 
       {/* Honeypot */}
@@ -589,109 +612,105 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
       </div>
 
       {/* Job-specific fields */}
-      {
-        isJobCategory && (
-          <>
+      {isJobCategory && (
+        <>
+          <div>
+            <label className="block font-bold text-sm uppercase mb-2">
+              Company Name
+            </label>
+            <input
+              type="text"
+              name="company_name"
+              value={formData.company_name || ""}
+              onChange={handleChange}
+              placeholder="Your company name (or 'Confidential')"
+              className="w-full border-2 border-black p-3 font-sans"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block font-bold text-sm uppercase mb-2">
-                Company Name
+                Job Type
+              </label>
+              <select
+                name="job_type"
+                value={formData.job_type || ""}
+                onChange={handleChange}
+                className="w-full border-2 border-black p-3 bg-white font-sans"
+              >
+                <option value="">Select Type</option>
+                {JOB_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-bold text-sm uppercase mb-2">
+                Salary
               </label>
               <input
                 type="text"
-                name="company_name"
-                value={formData.company_name || ""}
+                name="salary"
+                value={formData.salary || ""}
                 onChange={handleChange}
-                placeholder="Your company name (or 'Confidential')"
+                placeholder="e.g. ₹25,000 - ₹35,000/month"
+                className="w-full border-2 border-black p-3 font-sans"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block font-bold text-sm uppercase mb-2">
+                Experience Required
+              </label>
+              <input
+                type="text"
+                name="experience"
+                value={formData.experience || ""}
+                onChange={handleChange}
+                placeholder="e.g. 2-3 years"
                 className="w-full border-2 border-black p-3 font-sans"
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-bold text-sm uppercase mb-2">
-                  Job Type
-                </label>
-                <select
-                  name="job_type"
-                  value={formData.job_type || ""}
-                  onChange={handleChange}
-                  className="w-full border-2 border-black p-3 bg-white font-sans"
-                >
-                  <option value="">Select Type</option>
-                  {JOB_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block font-bold text-sm uppercase mb-2">
-                  Salary
-                </label>
-                <input
-                  type="text"
-                  name="salary"
-                  value={formData.salary || ""}
-                  onChange={handleChange}
-                  placeholder="e.g. ₹25,000 - ₹35,000/month"
-                  className="w-full border-2 border-black p-3 font-sans"
-                />
-              </div>
+            <div>
+              <label className="block font-bold text-sm uppercase mb-2">
+                Education Required
+              </label>
+              <input
+                type="text"
+                name="education"
+                value={formData.education || ""}
+                onChange={handleChange}
+                placeholder="e.g. Graduate / Any"
+                className="w-full border-2 border-black p-3 font-sans"
+              />
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-bold text-sm uppercase mb-2">
-                  Experience Required
-                </label>
-                <input
-                  type="text"
-                  name="experience"
-                  value={formData.experience || ""}
-                  onChange={handleChange}
-                  placeholder="e.g. 2-3 years"
-                  className="w-full border-2 border-black p-3 font-sans"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-sm uppercase mb-2">
-                  Education Required
-                </label>
-                <input
-                  type="text"
-                  name="education"
-                  value={formData.education || ""}
-                  onChange={handleChange}
-                  placeholder="e.g. Graduate / Any"
-                  className="w-full border-2 border-black p-3 font-sans"
-                />
-              </div>
-            </div>
-          </>
-        )
-      }
+          </div>
+        </>
+      )}
 
       {/* Price field */}
-      {
-        isPriceCategory && (
-          <div>
-            <label className="block font-bold text-sm uppercase mb-2">
-              Price
-            </label>
-            <input
-              type="text"
-              name="price"
-              value={formData.price || ""}
-              onChange={handleChange}
-              placeholder="e.g. ₹45,000 or ₹15,000/month"
-              className="w-full border-2 border-black p-3 font-sans"
-            />
-          </div>
-        )
-      }
+      {isPriceCategory && (
+        <div>
+          <label className="block font-bold text-sm uppercase mb-2">
+            Price
+          </label>
+          <input
+            type="text"
+            name="price"
+            value={formData.price || ""}
+            onChange={handleChange}
+            placeholder="e.g. ₹45,000 or ₹15,000/month"
+            className="w-full border-2 border-black p-3 font-sans"
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -782,7 +801,6 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
         />
       </div>
 
-      {/* Submit */}
       <button
         type="submit"
         disabled={isSubmitting || isUploading}
@@ -792,15 +810,17 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
         {getSubmitLabel()}
       </button>
 
+      {!isPaid && (
+        <p className="text-xs text-gray-500 text-center">
+          By posting, you agree to our Terms of Service. One post per phone number every 30 days.
+        </p>
+      )}
       {isPaid && (
         <p className="mt-2 text-center text-xs font-bold text-green-700 bg-green-50 p-2 border border-green-200 rounded">
           ✓ Premium Listing Active: 30-Day limit bypassed.
         </p>
       )}
 
-      <p className="text-xs text-gray-500 text-center">
-        By posting, you agree to our Terms of Service. One post per phone number every 30 days.
-      </p>
-    </form >
+    </form>
   );
 }

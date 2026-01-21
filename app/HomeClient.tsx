@@ -273,11 +273,6 @@ export default function HomeClient() {
     }, [activeCity]);
 
     // SEO Dynamic Title Logic
-    // MODIFIED: Homepage (/) always stays "Freepo.in" even if filtered.
-    // Dynamic titles only apply if we were on a specific route (e.g. /city/...) or 
-    // if the user specifically requested dynamic behavior. Current prompt asks to RESTORE homepage layout.
-
-    // We can use usePathname() to detect if we are on root or sub-page
     const pathname = usePathname();
     const isCityPage = pathname?.startsWith("/city/");
 
@@ -291,13 +286,6 @@ export default function HomeClient() {
             return `Post Free ${activeCategory} Ads in India`;
         }
         return "Freepo.in";
-    };
-
-    const getDynamicSubTitle = () => {
-        if (isCityPage && activeCity) {
-            return `Buy & Sell Used Cars, Mobiles, Bikes in ${activeCity}`;
-        }
-        return "India's #1 Newspaper Style Classifieds - Buy, Sell, Rent, Jobs";
     };
 
     return (
@@ -755,6 +743,79 @@ export default function HomeClient() {
                 </div>
             </section>
 
+            {/* Optional Paid Plans Section (Compliance Update) */}
+            <section className="bg-gray-50 border-t-2 border-gray-200 py-10 px-4">
+                <div className="max-w-5xl mx-auto text-center">
+                    <h2 className="font-serif text-2xl font-bold mb-2">Optional Paid Listings for Better Visibility</h2>
+                    <p className="text-gray-600 mb-8 max-w-2xl mx-auto text-sm">
+                        Freepo.in is 100% free to use. However, you can choose strictly optional upgrades to increase trust and visibility for your ads.
+                    </p>
+
+                    <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                        {/* Verified Plan */}
+                        <div className="bg-white border border-gray-200 p-6 shadow-sm hover:shadow-md transition text-left relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-1 uppercase tracking-widest">
+                                Optional
+                            </div>
+                            <h3 className="font-bold text-lg mb-1">Verified Listing <span className="text-sm font-normal text-gray-500 ml-1">(₹49)</span></h3>
+                            <p className="text-xs text-gray-500 mb-4 h-8">Ideal for individuals & small businesses to build trust.</p>
+
+                            <ul className="space-y-2 text-sm text-gray-700 mb-6">
+                                <li className="flex items-center gap-2">
+                                    <span className="text-green-600 font-bold">✓</span> Verified Badge on Listing
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-green-600 font-bold">✓</span> Mobile Number Verified
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-green-600 font-bold">✓</span> Active for 30 Days
+                                </li>
+                            </ul>
+
+                            <div className="mt-auto">
+                                <Link href="/post-ad" className="block w-full border border-black text-black text-center py-2 font-bold uppercase text-xs hover:bg-black hover:text-white transition">
+                                    Learn More
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Featured Plus Plan */}
+                        <div className="bg-white border border-yellow-400 p-6 shadow-sm hover:shadow-md transition text-left relative overflow-hidden">
+                            <div className="absolute top-0 right-0 bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-1 uppercase tracking-widest">
+                                Recommended
+                            </div>
+                            <h3 className="font-bold text-lg mb-1">Featured Plus <span className="text-sm font-normal text-gray-500 ml-1">(₹99)</span></h3>
+                            <p className="text-xs text-gray-500 mb-4 h-8">Best for businesses, properties & urgent sales.</p>
+
+                            <ul className="space-y-2 text-sm text-gray-700 mb-6">
+                                <li className="flex items-center gap-2">
+                                    <span className="text-yellow-600 font-bold">★</span> <strong>Featured Plus Badge</strong>
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-yellow-600 font-bold">★</span> Gold Highlighted Listing
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-green-600 font-bold">✓</span> Higher Visibility
+                                </li>
+                                <li className="flex items-center gap-2">
+                                    <span className="text-green-600 font-bold">✓</span> Active for 60 Days
+                                </li>
+                            </ul>
+
+                            <div className="mt-auto">
+                                <Link href="/post-ad" className="block w-full bg-black text-white text-center py-2 font-bold uppercase text-xs hover:bg-gray-800 transition">
+                                    View Options
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p className="mt-8 text-xs text-gray-500">
+                        * Paid plans are completely optional. You can always post for free.
+                    </p>
+                </div>
+            </section>
+
             {/* Footer */}
             <footer className="border-t-4 border-black py-6 md:py-10 bg-gray-50 px-4">
                 <div className="max-w-4xl mx-auto text-center">
@@ -782,7 +843,8 @@ export default function HomeClient() {
                                         Manage My Ads
                                     </Link>
                                 </li>
-                                <li>
+                                {/* RSS Feed Hidden for Compliance */}
+                                {/* <li>
                                     <a
                                         href="/api/feed"
                                         target="_blank"
@@ -790,7 +852,7 @@ export default function HomeClient() {
                                     >
                                         <Rss size={12} /> RSS Feed
                                     </a>
-                                </li>
+                                </li> */}
                             </ul>
                         </div>
                         <div className="text-left">

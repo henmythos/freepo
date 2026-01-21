@@ -158,6 +158,9 @@ export default async function ItemDetailPage({ params }: PageProps) {
                         {post.views > 0 && (
                             <span className="flex items-center gap-1">• <Eye size={12} /> {post.views} views</span>
                         )}
+                        {post.public_ad_id && (
+                            <span className="flex items-center gap-1">• Ad ID: {post.public_ad_id}</span>
+                        )}
                     </div>
 
                     <h1 className="font-serif text-2xl md:text-4xl font-bold text-ink leading-tight mb-4 break-words">

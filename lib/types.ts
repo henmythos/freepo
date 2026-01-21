@@ -48,6 +48,7 @@ export interface Post {
     longitude?: number;
     listing_plan?: string;
     is_featured?: boolean;
+    public_ad_id?: string;
 }
 
 export interface CreatePostRequest {

@@ -13,99 +13,66 @@ export default function RefundPolicy() {
 
                 <div className="prose prose-lg mx-auto text-justify">
                     <p className="lead font-bold">
-                        At Freepo.in, our goal is to provide a simple, transparent, and trustworthy classifieds platform. Currently, users can post listings for free. In the future, we may introduce optional paid listing features to enhance visibility and trust.
+                        At Freepo.in, our goal is to provide a simple, transparent, and trustworthy classifieds platform. We operate primarily as a free-to-use service.
                     </p>
 
                     <p>
-                        This policy explains how payments and refunds will be handled when paid listings are enabled.
+                        However, we offer strictly <strong>optional paid upgrades</strong> for users who want better visibility or enhanced trust for their listings. These paid plans are <strong>NOT mandatory</strong> to use the platform.
                     </p>
 
-                    <h3>Free Listings</h3>
+                    <h3>1. Free Posting Is Core</h3>
                     <ul>
-                        <li>Posting ads on Freepo.in is currently <strong>free of cost</strong>.</li>
-                        <li>Free listings may have standard visibility and duration limits.</li>
+                        <li>Posting ads on Freepo.in is <strong>FREE</strong> for all users.</li>
+                        <li>You are never forced to pay to post a standard ad.</li>
+                        <li>Paid plans are purely for "Visibility Enhancement" and "Trust Badges".</li>
                     </ul>
 
-                    <h3>Paid Listing Options (Future)</h3>
-                    <p>In the future, users may choose optional paid plans to increase listing visibility and trust:</p>
+                    <h3>2. Optional Paid Plans</h3>
+                    <p>We offer the following optional upgrades:</p>
 
                     <div className="bg-gray-100 p-6 border-l-4 border-black my-6">
-                        <div className="flex justify-between items-start flex-wrap gap-4">
-                            <div>
-                                <h4 className="mt-0">₹49 – Verified Listing</h4>
-                                <ul className="mb-0">
-                                    <li>Listing active for 60 days</li>
-                                    <li>Includes a <strong>Verified Tick</strong></li>
-                                    <li>Improves credibility and trust for buyers</li>
-                                </ul>
-                            </div>
-                            <a href="https://rzp.io/rzp/freepo49" className="bg-black text-white px-6 py-2 font-bold uppercase hover:bg-gray-800 transition text-sm">
-                                Buy Now
-                            </a>
-                        </div>
+                        <h4 className="mt-0">Verified Listing (₹49)</h4>
+                        <p className="text-sm mb-2">Optional upgrade for individuals/small businesses.</p>
+                        <ul className="text-sm mb-0">
+                            <li><strong>Benefits:</strong> Verified Tick, 30-day validity.</li>
+                            <li><strong>Purpose:</strong> Improves buyer trust.</li>
+                        </ul>
                     </div>
 
                     <div className="bg-gray-100 p-6 border-l-4 border-black my-6">
-                        <div className="flex justify-between items-start flex-wrap gap-4">
-                            <div>
-                                <h4 className="mt-0">₹99 – Featured & Verified Listing</h4>
-                                <ul className="mb-0">
-                                    <li>Listing active for 90 days</li>
-                                    <li>Includes Verified Tick</li>
-                                    <li><strong>Featured placement</strong> for higher visibility across the platform</li>
-                                </ul>
-                            </div>
-                            <a href="https://rzp.io/rzp/freepo99" className="bg-black text-white px-6 py-2 font-bold uppercase hover:bg-gray-800 transition text-sm">
-                                Buy Now
-                            </a>
-                        </div>
+                        <h4 className="mt-0">Featured Plus Listing (₹99)</h4>
+                        <p className="text-sm mb-2">Optional upgrade for businesses/urgent sales.</p>
+                        <ul className="text-sm mb-0">
+                            <li><strong>Benefits:</strong> Featured placement, Gold Highlight, 60-day validity.</li>
+                            <li><strong>Purpose:</strong> Maximum visibility.</li>
+                        </ul>
                     </div>
 
-                    <p>Paid options are completely optional and will be clearly displayed before payment.</p>
+                    <h3>3. Refund Policy</h3>
+                    <p><strong>General Rule:</strong> Payments for optional listing upgrades are generally non-refundable once the service is delivered (i.e., the ad is live with the badge).</p>
 
-                    <h3>Refund Policy</h3>
-                    <p><strong>Payments made for paid listings are generally non-refundable.</strong></p>
+                    <h4>Refund Eligibility (Valid Cases)</h4>
+                    <p>We WILL provide a full refund within <strong>5-7 working days</strong> in the following specific cases:</p>
+                    <ul>
+                        <li><strong>Technical Failure:</strong> Money was deducted, but the ad was not upgraded or posted due to a server error.</li>
+                        <li><strong>Duplicate Payment:</strong> You were charged twice for the same listing ID due to a gateway error.</li>
+                    </ul>
 
-                    <div className="bg-red-50 border border-red-200 p-4 rounded my-4 text-sm text-red-900">
-                        <strong>Transaction Failures:</strong> If money is debited from your account due to a technical error, app crash, or if the listing fails to post after payment, the amount will be automatically refunded to your original payment method within <strong>3 working days</strong>.
-                        <br /><br />
-                        For payment related issues, please contact us at: <a href="mailto:supthenexte@gmail.com" className="font-bold underline">supthenexte@gmail.com</a>
+                    <h4>Non-Refundable Cases</h4>
+                    <p>Refunds will NOT be provided for:</p>
+                    <ul>
+                        <li><strong>Live Ads:</strong> Once your ad is live with the paid benefits (Verified/Featured), the service is considered delivered.</li>
+                        <li><strong>Policy Violations:</strong> If your ad is removed for containing illegal content, spam, fraud, or violating our Terms of Service.</li>
+                        <li><strong>Change of Mind:</strong> If you decide to delete your ad after paying and posting.</li>
+                    </ul>
+
+                    <h3>4. Contact for Support</h3>
+                    <p>
+                        For any payment-related issues or to request a refund for a failed transaction, please contact us immediately:
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 p-4 rounded font-bold text-center">
+                        Email: <a href="mailto:supthenexte@gmail.com" className="underline text-blue-800">supthenexte@gmail.com</a>
                     </div>
-
-                    <p>Refunds will not be provided in the following cases:</p>
-                    <ul>
-                        <li>Illegal listings</li>
-                        <li>Spam or misleading content</li>
-                        <li>Fraudulent, deceptive, or false information</li>
-                        <li>Duplicate or repeated ads</li>
-                        <li>Listings violating local laws or platform guidelines</li>
-                    </ul>
-                    <p>
-                        Such listings may be removed by Freepo.in operators without prior notice, even if payment was made. Once a post is live there is no refund.
-                    </p>
-
-                    <h3>Listing Moderation</h3>
-                    <ul>
-                        <li>All listings are subject to manual or automated review.</li>
-                        <li>Freepo.in reserves the right to approve, reject, suspend, or remove any listing to maintain platform quality and legal compliance.</li>
-                        <li>Decisions made by moderation teams are final.</li>
-                    </ul>
-
-                    <h3>Payment Confirmation</h3>
-                    <ul>
-                        <li>Payments (when enabled) will be processed through secure payment gateways.</li>
-                        <li>Once a paid listing is published, it will remain active for the selected duration unless removed due to policy violations.</li>
-                    </ul>
-
-                    <h3>Changes to This Policy</h3>
-                    <p>
-                        Freepo.in may update this policy from time to time. Any changes will be reflected on this page with immediate effect.
-                    </p>
-
-                    <h3>Contact</h3>
-                    <p>
-                        For questions related to payments, listings, or policy clarifications, please contact us via the support details provided on the website.
-                    </p>
                 </div>
             </main>
         </div>

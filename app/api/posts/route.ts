@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDB } from "@/lib/db";
 import crypto from "crypto";
 import { formatPrice, containsPhoneNumber } from "@/lib/priceUtils";
+import { generatePublicAdId } from "@/lib/adIdUtils";
 
 // Ensure table exists
 async function ensureTable() {
@@ -62,7 +63,8 @@ async function ensureTable() {
         "latitude REAL",
         "longitude REAL",
         "listing_plan TEXT DEFAULT 'free'",
-        "is_featured BOOLEAN DEFAULT 0"
+        "is_featured BOOLEAN DEFAULT 0",
+        "public_ad_id TEXT UNIQUE"
     ];
 
     for (const col of columnsToAdd) {
@@ -94,6 +96,7 @@ async function ensureTable() {
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_expires ON posts(expires_at)`);
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_plan ON posts(listing_plan)`);
         await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_featured ON posts(is_featured)`);
+        await db.execute(`CREATE INDEX IF NOT EXISTS idx_posts_ad_id ON posts(public_ad_id)`);
     } catch (e) {
         console.error("Index creation failed (non-fatal):", e);
     }
@@ -184,8 +187,12 @@ export async function GET(request: NextRequest) {
         }
 
         // Ordering
-        // Global feed, stick to created_at DESC for freshness
-        sql += " ORDER BY created_at DESC LIMIT ?";
+        // Priority: Featured Plus (featured_plus_60) FIRST, then others by date
+        // SQLite doesn't have custom sort easily, so we use CASE
+        sql += ` ORDER BY 
+            CASE WHEN listing_plan = 'featured_plus_60' THEN 1 ELSE 0 END DESC, 
+            created_at DESC 
+            LIMIT ?`;
         args.push(limit);
 
         const result = await db.execute({ sql, args });
@@ -228,7 +235,10 @@ export async function GET(request: NextRequest) {
                             fallbackArgs.push(term, term);
                         }
 
-                        fallbackSql += " ORDER BY created_at DESC LIMIT ?";
+                        fallbackSql += ` ORDER BY 
+                            CASE WHEN listing_plan = 'featured_plus_60' THEN 1 ELSE 0 END DESC, 
+                            created_at DESC 
+                            LIMIT ?`;
                         fallbackArgs.push(limit);
 
                         const fallbackResult = await db.execute({ sql: fallbackSql, args: fallbackArgs });
@@ -264,7 +274,10 @@ export async function GET(request: NextRequest) {
                 // We exclude cursor logic here as this is strictly for initial load fallback
                 // We do NOT include city or lat/lng constraints
 
-                fallbackSql += " ORDER BY created_at DESC LIMIT ?";
+                fallbackSql += ` ORDER BY 
+                    CASE WHEN listing_plan = 'featured_plus_60' THEN 1 ELSE 0 END DESC, 
+                    created_at DESC 
+                    LIMIT ?`;
                 fallbackArgs.push(limit);
 
                 const fallbackResult = await db.execute({ sql: fallbackSql, args: fallbackArgs });
@@ -387,13 +400,18 @@ export async function POST(request: NextRequest) {
             finalListingPlan = "free";
         }
 
-        if (finalListingPlan === "featured_30") {
-            // Only active feature if PAID
-            isFeatured = paid_verified ? 1 : 0;
-            expiresAtSql = "datetime('now', '+30 days')";
-        } else if (finalListingPlan === "featured_60") {
-            isFeatured = paid_verified ? 1 : 0;
+        if (finalListingPlan === "featured_plus_60") {
+            // ₹99 Plan: Featured Plus
+            isFeatured = 1; // Actually Featured
             expiresAtSql = "datetime('now', '+60 days')";
+        } else if (finalListingPlan === "verified_30") {
+            // ₹49 Plan: Verified Only
+            isFeatured = 0; // Not featured in sorting, just verified badge
+            expiresAtSql = "datetime('now', '+30 days')";
+        } else if (finalListingPlan === "featured_30") {
+            // Legacy or backup plan name
+            isFeatured = paid_verified ? 0 : 0; // Downgrade legacy "featured" to normal if verified only is intended, but let's assume this maps to verified
+            expiresAtSql = "datetime('now', '+30 days')";
         } else {
             // Default Free
             finalListingPlan = "free";
@@ -435,6 +453,31 @@ export async function POST(request: NextRequest) {
 
         // Generate ID
         const id = crypto.randomUUID();
+
+        // Generate Public Ad ID (Collision Handling)
+        let public_ad_id = generatePublicAdId();
+        let retries = 0;
+        const MAX_RETRIES = 5;
+
+        while (retries < MAX_RETRIES) {
+            const existing = await db.execute({
+                sql: "SELECT 1 FROM posts WHERE public_ad_id = ? LIMIT 1",
+                args: [public_ad_id],
+            });
+
+            if (existing.rows.length === 0) {
+                break; // Unique!
+            }
+
+            // Collision occurred
+            retries++;
+            public_ad_id = generatePublicAdId();
+        }
+
+        if (retries >= MAX_RETRIES) {
+            console.error("Failed to generate unique Public Ad ID after max retries");
+            public_ad_id = generatePublicAdId() + "X"; // Last resort fallback (very unlikely needed)
+        }
 
         // Extract optional fields
         const {
@@ -482,7 +525,7 @@ export async function POST(request: NextRequest) {
           expires_at, image1, image2, image3, image4, image5, 
           image1_alt, image2_alt, image3_alt, image4_alt, image5_alt, 
           contact_preference, locality, latitude, longitude,
-          listing_plan, is_featured
+          listing_plan, is_featured, public_ad_id
         )
         VALUES (
           ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
@@ -490,7 +533,8 @@ export async function POST(request: NextRequest) {
           ?, ?, ?, ?, ?, 
           ?, ?, ?, ?, ?, 
           ?, ?, ?, ?,
-          ?, ?
+          ?, ?, ?, ?,
+          ?, ?, ?
         );
       `,
             args: [
@@ -524,7 +568,8 @@ export async function POST(request: NextRequest) {
                 latitude,
                 longitude,
                 finalListingPlan,
-                isFeatured
+                isFeatured,
+                public_ad_id
             ],
         });
 
@@ -534,7 +579,7 @@ export async function POST(request: NextRequest) {
             args: [city],
         }).catch((e) => console.error("[STATS ERROR]", e.message));
 
-        return NextResponse.json({ success: true, id });
+        return NextResponse.json({ success: true, id, public_ad_id });
     } catch (e: unknown) {
         const message = e instanceof Error ? e.message : "Unknown error";
         console.error("[POST ERROR]", message);
