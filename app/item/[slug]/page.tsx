@@ -76,7 +76,17 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         openGraph: {
             title: `${post.title} - ${post.city}`,
             description: post.description?.substring(0, 160),
-            images: [CATEGORY_IMAGES[post.category as Category] || CATEGORY_IMAGES.Community],
+            images: post.image1
+                ? [{ url: post.image1, alt: post.title }]
+                : [CATEGORY_IMAGES[post.category as Category] || CATEGORY_IMAGES.Community],
+            type: 'article',
+            locale: 'en_IN',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `${post.title} - ${post.city}`,
+            description: post.description?.substring(0, 100),
+            images: post.image1 ? [post.image1] : undefined,
         },
         alternates: {
             canonical: `https://freepo.in/item/${params.slug}`,
@@ -480,13 +490,13 @@ export default async function ItemDetailPage({ params }: PageProps) {
                             }, {
                                 "@type": "ListItem",
                                 "position": 2,
-                                "name": post.city,
-                                "item": `https://freepo.in/?city=${encodeURIComponent(post.city)}`
+                                "name": post.category,
+                                "item": `https://freepo.in/${post.category.toLowerCase()}`
                             }, {
                                 "@type": "ListItem",
                                 "position": 3,
-                                "name": post.category,
-                                "item": `https://freepo.in/?city=${encodeURIComponent(post.city)}&category=${encodeURIComponent(post.category)}`
+                                "name": `${post.category} in ${post.city}`,
+                                "item": `https://freepo.in/${post.category.toLowerCase()}/${post.city.toLowerCase().replace(/ /g, '-')}`
                             }, {
                                 "@type": "ListItem",
                                 "position": 4,

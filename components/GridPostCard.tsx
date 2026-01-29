@@ -23,7 +23,7 @@ export default function GridPostCard({ post, priority = false }: GridPostCardPro
         <Link href={`/item/${slug}-iid-${post.id}`} className="block h-full">
             <article className={`border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow h-full flex flex-col relative
                 ${(post.category === "Jobs" || post.category === "Services") ? "bg-[#fffdf5]" : "bg-white"}
-                ${post.listing_plan === "featured_60" ? "border-2 border-yellow-400" : ""}
+                ${post.listing_plan === "featured_plus_60" ? "border-2 border-yellow-400" : ""}
             `}>
                 {/* Image Section - Square & Contained */}
                 <div className="relative aspect-square bg-white overflow-hidden border-b border-gray-100">
@@ -35,7 +35,7 @@ export default function GridPostCard({ post, priority = false }: GridPostCardPro
                             className="object-cover"
                             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
                             priority={priority}
-                            unoptimized
+                            loading={priority ? "eager" : "lazy"}
                         />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-300 text-xs uppercase font-bold tracking-widest">
@@ -47,9 +47,14 @@ export default function GridPostCard({ post, priority = false }: GridPostCardPro
                             Fresh
                         </div>
                     )}
-                    {!!post.is_featured && post.listing_plan === "featured_60" && (
+                    {post.listing_plan === "featured_plus_60" && (
                         <div className="absolute top-2 right-2 bg-yellow-400 text-black border border-black text-[9px] font-bold px-2 py-1 uppercase tracking-wide shadow-sm z-10">
-                            Featured
+                            ⭐ Featured
+                        </div>
+                    )}
+                    {post.listing_plan === "verified_30" && (
+                        <div className="absolute top-2 right-2 bg-blue-500 text-white text-[9px] font-bold px-2 py-1 uppercase tracking-wide shadow-sm z-10">
+                            ✓ Verified
                         </div>
                     )}
                     {post.price && (

@@ -43,7 +43,6 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
                     className="object-contain z-10"
                     sizes="(max-width: 768px) 100vw, 800px"
                     priority
-                    unoptimized
                 />
             </div>
         );
@@ -114,7 +113,7 @@ export default function ImageCarousel({ images, fallback }: ImageCarouselProps) 
                             className="object-contain z-10"
                             sizes="(max-width: 768px) 100vw, 800px"
                             priority={index === 0}
-                            unoptimized
+                            loading={index === 0 ? "eager" : "lazy"}
                         />
                     </div>
                 ))}

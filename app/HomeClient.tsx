@@ -843,8 +843,7 @@ export default function HomeClient() {
                                         Manage My Ads
                                     </Link>
                                 </li>
-                                {/* RSS Feed Hidden for Compliance */}
-                                {/* <li>
+                                <li>
                                     <a
                                         href="/api/feed"
                                         target="_blank"
@@ -852,7 +851,7 @@ export default function HomeClient() {
                                     >
                                         <Rss size={12} /> RSS Feed
                                     </a>
-                                </li> */}
+                                </li>
                             </ul>
                         </div>
                         <div className="text-left">

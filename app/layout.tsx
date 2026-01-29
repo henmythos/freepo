@@ -50,9 +50,7 @@ export const metadata: Metadata = {
             'application/rss+xml': '/api/feed',
         },
     },
-    verification: {
-        google: 'your-google-verification-code', // Replace with actual code
-    },
+    // Google verification done via DNS - no meta tag needed
     icons: {
         icon: '/favicon.ico',
         shortcut: '/favicon.ico',
@@ -87,7 +85,7 @@ const jsonLd = {
             url: 'https://freepo.in',
             logo: {
                 '@type': 'ImageObject',
-                url: 'https://freepo.in/logo.png',
+                url: 'https://freepo.in/apple-touch-icon.png',
             },
             sameAs: [],
             contactPoint: {

@@ -3,6 +3,8 @@ import { getDB } from "@/lib/db";
 import crypto from "crypto";
 import { formatPrice, containsPhoneNumber } from "@/lib/priceUtils";
 import { generatePublicAdId } from "@/lib/adIdUtils";
+import { generateSlug } from "@/lib/slugUtils";
+import { notifyGoogleIndexing } from "@/lib/googleIndexing";
 
 // Ensure table exists
 async function ensureTable() {
@@ -204,13 +206,9 @@ export async function GET(request: NextRequest) {
             args.push(cursor);
         }
 
-        // Ordering
-        // Priority: Featured Plus (featured_plus_60) FIRST, then others by date
-        // SQLite doesn't have custom sort easily, so we use CASE
-        sql += ` ORDER BY 
-            CASE WHEN listing_plan = 'featured_plus_60' THEN 1 ELSE 0 END DESC, 
-            created_at DESC 
-            LIMIT ?`;
+        // Ordering: All posts by created date (newest first)
+        // Featured posts distinguished by visual badges only, not position
+        sql += ` ORDER BY created_at DESC LIMIT ?`;
         args.push(limit);
 
         const result = await db.execute({ sql, args });
@@ -253,10 +251,7 @@ export async function GET(request: NextRequest) {
                             fallbackArgs.push(term, term);
                         }
 
-                        fallbackSql += ` ORDER BY 
-                            CASE WHEN listing_plan = 'featured_plus_60' THEN 1 ELSE 0 END DESC, 
-                            created_at DESC 
-                            LIMIT ?`;
+                        fallbackSql += ` ORDER BY created_at DESC LIMIT ?`;
                         fallbackArgs.push(limit);
 
                         const fallbackResult = await db.execute({ sql: fallbackSql, args: fallbackArgs });
@@ -292,10 +287,7 @@ export async function GET(request: NextRequest) {
                 // We exclude cursor logic here as this is strictly for initial load fallback
                 // We do NOT include city or lat/lng constraints
 
-                fallbackSql += ` ORDER BY 
-                    CASE WHEN listing_plan = 'featured_plus_60' THEN 1 ELSE 0 END DESC, 
-                    created_at DESC 
-                    LIMIT ?`;
+                fallbackSql += ` ORDER BY created_at DESC LIMIT ?`;
                 fallbackArgs.push(limit);
 
                 const fallbackResult = await db.execute({ sql: fallbackSql, args: fallbackArgs });
@@ -595,6 +587,15 @@ export async function POST(request: NextRequest) {
             sql: "INSERT INTO city_stats (city, posts_count) VALUES (?, 1) ON CONFLICT(city) DO UPDATE SET posts_count = posts_count + 1",
             args: [city],
         }).catch((e) => console.error("[STATS ERROR]", e.message));
+
+        // Google Indexing API: Notify for Jobs category (fire & forget)
+        if (category === "Jobs") {
+            const slug = generateSlug(title, city, category);
+            const jobUrl = `https://freepo.in/item/${slug}-iid-${id}`;
+            notifyGoogleIndexing(jobUrl, 'URL_UPDATED').catch((e) =>
+                console.error("[INDEXING ERROR]", e)
+            );
+        }
 
         return NextResponse.json({ success: true, id, public_ad_id });
     } catch (e: unknown) {
