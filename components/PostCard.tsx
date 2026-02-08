@@ -178,31 +178,7 @@ export default function PostCard({ post, priority = false }: PostCardProps) {
         </div>
       </Link>
 
-      {/* Action Buttons - Appear on hover on desktop, always visible on mobile */}
-      <div className="absolute right-2 top-2 flex gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-        {/* Favorite Button */}
-        <button
-          onClick={handleFavoriteClick}
-          className={`p-2 rounded-full shadow-md transition-all ${isFavorite
-              ? "bg-red-500 text-white"
-              : "bg-white text-gray-500 hover:text-red-500 hover:bg-red-50"
-            }`}
-          title={isFavorite ? "Remove from favorites" : "Add to favorites"}
-        >
-          <Heart size={16} fill={isFavorite ? "currentColor" : "none"} />
-        </button>
 
-        {/* WhatsApp Button */}
-        {showWhatsApp && (
-          <button
-            onClick={handleWhatsAppClick}
-            className="p-2 rounded-full bg-[#25D366] text-white shadow-md hover:bg-[#128c7e] transition-all"
-            title="Quick WhatsApp"
-          >
-            <MessageCircle size={16} />
-          </button>
-        )}
-      </div>
     </article>
   );
 }
