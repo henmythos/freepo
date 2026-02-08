@@ -7,25 +7,98 @@ import { formatDistanceToNow } from "date-fns";
 
 import { generateSlug } from "@/lib/slugUtils";
 import { formatPrice } from "@/lib/priceUtils";
-import { Eye } from "lucide-react";
+import { Eye, Heart, MessageCircle } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface PostCardProps {
   post: Post;
   priority?: boolean;
 }
 
+// Helper to check if favorite
+function checkIsFavorite(id: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const stored = localStorage.getItem("freepo_favorites");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return Array.isArray(parsed) && parsed.some((f: { id: string }) => f.id === id);
+    }
+  } catch (e) {
+    console.error("Failed to check favorite:", e);
+  }
+  return false;
+}
+
+// Helper to toggle favorite
+function toggleFavorite(post: Post, slug: string): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const stored = localStorage.getItem("freepo_favorites");
+    let favorites = stored ? JSON.parse(stored) : [];
+    if (!Array.isArray(favorites)) favorites = [];
+
+    const exists = favorites.some((f: { id: string }) => f.id === post.id);
+    if (exists) {
+      favorites = favorites.filter((f: { id: string }) => f.id !== post.id);
+    } else {
+      favorites.unshift({
+        id: post.id,
+        title: post.title,
+        slug: slug,
+        image: post.image1,
+        price: post.price || post.salary,
+        city: post.city,
+        addedAt: Date.now()
+      });
+      favorites = favorites.slice(0, 50); // Max 50 favorites
+    }
+    localStorage.setItem("freepo_favorites", JSON.stringify(favorites));
+    return !exists; // Return new state
+  } catch (e) {
+    console.error("Failed to toggle favorite:", e);
+    return false;
+  }
+}
+
 export default function PostCard({ post, priority = false }: PostCardProps) {
   const slug = generateSlug(post.title, post.city, post.category);
+  const [isFavorite, setIsFavorite] = useState(false);
+
+  // Check favorite status on mount
+  useEffect(() => {
+    setIsFavorite(checkIsFavorite(post.id));
+  }, [post.id]);
 
   // Check if post is less than 24 hours old
   const isNew = Date.now() - new Date(post.created_at).getTime() < 24 * 60 * 60 * 1000;
 
+  // Handle favorite click
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newState = toggleFavorite(post, slug);
+    setIsFavorite(newState);
+  };
+
+  // Handle WhatsApp click
+  const handleWhatsAppClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const phone = post.whatsapp || post.contact_phone;
+    const message = encodeURIComponent(`Hi, I'm interested in your listing "${post.title}" on Freepo.in`);
+    window.open(`https://wa.me/91${phone}?text=${message}`, "_blank");
+  };
+
+  // Show WhatsApp button only if contact preference allows it
+  const showWhatsApp = post.contact_preference === "whatsapp" || post.contact_preference === "both" || !post.contact_preference;
+
   return (
-    <Link href={`/item/${slug}-iid-${post.id}`} className="block">
-      <article className={`border-b border-gray-200 py-3 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 
-        ${(post.category === "Jobs" || post.category === "Services") ? "bg-[#fffdf5] px-2 -mx-2" : ""}
-        ${post.listing_plan === "featured_plus_60" ? "border-2 border-transparent bg-yellow-50/70 relative overflow-hidden [background-clip:padding-box] before:absolute before:inset-0 before:-z-10 before:rounded-sm before:bg-gradient-to-r before:from-[#FFD700] before:via-[#FDB931] before:to-[#FFD700] before:m-[-2px] before:content-['']" : ""}
-      `}>
+    <article className={`border-b border-gray-200 py-3 hover:bg-gray-50 transition-colors cursor-pointer flex gap-3 group relative
+      ${(post.category === "Jobs" || post.category === "Services") ? "bg-[#fffdf5] px-2 -mx-2" : ""}
+      ${post.listing_plan === "featured_plus_60" ? "border-2 border-transparent bg-yellow-50/70 relative overflow-hidden [background-clip:padding-box] before:absolute before:inset-0 before:-z-10 before:rounded-sm before:bg-gradient-to-r before:from-[#FFD700] before:via-[#FDB931] before:to-[#FFD700] before:m-[-2px] before:content-['']" : ""}
+    `}>
+      <Link href={`/item/${slug}-iid-${post.id}`} className="flex gap-3 flex-1 min-w-0">
         {post.image1 && (
           <div className="relative w-24 h-24 flex-shrink-0 bg-[#f2f2f2] border border-gray-200 rounded-md overflow-hidden flex items-center justify-center">
             <Image
@@ -89,17 +162,47 @@ export default function PostCard({ post, priority = false }: PostCardProps) {
           </div>
           <div className="flex-shrink-0 text-right">
             {post.price && (
-              <div className="font-bold text-sm text-ink">{formatPrice(post.price)}</div>
+              <div className="font-bold text-sm text-green-700">{formatPrice(post.price)}</div>
             )}
             {post.salary && (
-              <div className="font-bold text-sm text-ink">{formatPrice(post.salary)}</div>
+              <div className="font-bold text-sm text-green-700">{formatPrice(post.salary)}</div>
+            )}
+            {/* Price Negotiable Badge */}
+            {post.is_negotiable && (post.price || post.salary) && (
+              <div className="text-[9px] text-orange-600 font-bold uppercase mt-0.5">Negotiable</div>
             )}
             {post.job_type && (
               <div className="text-xs text-gray-500 mt-1">{post.job_type}</div>
             )}
           </div>
         </div>
-      </article>
-    </Link>
+      </Link>
+
+      {/* Action Buttons - Appear on hover on desktop, always visible on mobile */}
+      <div className="absolute right-2 top-2 flex gap-1.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+        {/* Favorite Button */}
+        <button
+          onClick={handleFavoriteClick}
+          className={`p-2 rounded-full shadow-md transition-all ${isFavorite
+              ? "bg-red-500 text-white"
+              : "bg-white text-gray-500 hover:text-red-500 hover:bg-red-50"
+            }`}
+          title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Heart size={16} fill={isFavorite ? "currentColor" : "none"} />
+        </button>
+
+        {/* WhatsApp Button */}
+        {showWhatsApp && (
+          <button
+            onClick={handleWhatsAppClick}
+            className="p-2 rounded-full bg-[#25D366] text-white shadow-md hover:bg-[#128c7e] transition-all"
+            title="Quick WhatsApp"
+          >
+            <MessageCircle size={16} />
+          </button>
+        )}
+      </div>
+    </article>
   );
 }

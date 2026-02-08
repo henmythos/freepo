@@ -76,9 +76,64 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
 
           const data = await response.json();
 
-          // Extract city and locality from response
+          // Extract city and detailed locality from response
           const detectedCity = data.city || data.locality || "";
-          const detectedLocality = data.locality !== data.city ? data.locality : (data.principalSubdivision || "");
+
+          // Try to get more detailed locality from localityInfo
+          let detectedLocality = "";
+
+          // Priority: Ward/Neighbourhood > locality > principalSubdivision
+          if (data.localityInfo?.administrative) {
+            // Find the most specific admin level (highest adminLevel number = most specific)
+            const adminAreas = data.localityInfo.administrative
+              .filter((a: { adminLevel?: number; name?: string }) =>
+                a.adminLevel && a.adminLevel >= 6 && a.name &&
+                a.name !== detectedCity &&
+                !a.name.toLowerCase().includes('zone') &&
+                !a.name.toLowerCase().includes('municipal') &&
+                !a.name.toLowerCase().includes('mandal') &&
+                !a.name.toLowerCase().includes('district')
+              )
+              .sort((a: { adminLevel: number }, b: { adminLevel: number }) =>
+                (b.adminLevel || 0) - (a.adminLevel || 0)
+              );
+
+            if (adminAreas.length > 0) {
+              // Get the most specific locality (e.g., "Ward 105 Gachibowli")
+              const specificArea = adminAreas[0];
+
+              // Clean up ward names: "Ward 105 Gachibowli" -> "Gachibowli"
+              let areaName = specificArea.name;
+              if (areaName.toLowerCase().startsWith('ward ')) {
+                // Extract area name after "Ward XXX "
+                const match = areaName.match(/Ward\s+\d+\s+(.+)/i);
+                if (match) {
+                  areaName = match[1];
+                }
+              }
+
+              detectedLocality = areaName;
+
+              // If we have a second level (like Serilingampally), we can append it
+              if (adminAreas.length > 1 && adminAreas[1].name !== areaName) {
+                const secondArea = adminAreas[1].name;
+                // Don't append if it's too similar or contains the first
+                if (!secondArea.includes(areaName) && !areaName.includes(secondArea)) {
+                  // Only append if it looks like a recognizable area name
+                  if (secondArea.length < 20 && !secondArea.toLowerCase().includes('ward')) {
+                    detectedLocality = `${areaName}, ${secondArea}`;
+                  }
+                }
+              }
+            }
+          }
+
+          // Fallback to original logic if no detailed locality found
+          if (!detectedLocality) {
+            detectedLocality = data.locality !== detectedCity
+              ? data.locality
+              : (data.principalSubdivision || "");
+          }
 
           // Match detected city with TOP_CITIES (case-insensitive)
           const matchedCity = TOP_CITIES.find(
@@ -716,6 +771,17 @@ export default function UniversalForm({ onSubmit, initialPlan = "free", isPaid =
             placeholder="e.g. ₹45,000 or ₹15,000/month"
             className="w-full border-2 border-black p-3 font-sans"
           />
+          {/* Price Negotiable Checkbox */}
+          <label className="flex items-center gap-2 mt-2 cursor-pointer">
+            <input
+              type="checkbox"
+              name="is_negotiable"
+              checked={!!formData.is_negotiable}
+              onChange={(e) => setFormData(prev => ({ ...prev, is_negotiable: e.target.checked }))}
+              className="w-4 h-4 accent-orange-500"
+            />
+            <span className="text-sm text-gray-700">Price is negotiable</span>
+          </label>
         </div>
       )}
 

@@ -48,6 +48,7 @@ export interface Post {
     longitude?: number;
     listing_plan?: string;
     is_featured?: boolean;
+    is_negotiable?: boolean;
     public_ad_id?: string;
 }
 
@@ -82,6 +83,7 @@ export interface CreatePostRequest {
     image5_alt?: string;
     contact_preference?: "call" | "whatsapp" | "both";
     listing_plan?: string;
+    is_negotiable?: boolean;
     paid_verified?: boolean;
 }
 

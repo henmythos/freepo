@@ -20,6 +20,7 @@ import {
 
 import useDebounce from "@/lib/useDebounce";
 import RecentlyViewed from "@/components/RecentlyViewed";
+import FAQSection from "@/components/FAQSection";
 import dynamic from "next/dynamic";
 
 const FirebaseTracker = dynamic(() => import("@/components/FirebaseTracker"), {
@@ -321,7 +322,14 @@ export default function HomeClient() {
                     <span className="flex-shrink-0">Free Forever</span>
                 </div>
 
-                <div className="absolute right-0 top-8 hidden md:block pr-4">
+                <div className="absolute right-0 top-8 hidden md:flex gap-3 pr-4">
+                    <Link
+                        href="/favorites"
+                        className="border border-black text-black px-4 py-2 font-bold uppercase tracking-wider hover:bg-gray-100 transition flex items-center gap-1"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" /></svg>
+                        Favorites
+                    </Link>
                     <Link
                         href="/post-ad"
                         className="bg-black text-white px-6 py-2 font-bold uppercase tracking-wider hover:bg-gray-800 transition"
@@ -815,6 +823,9 @@ export default function HomeClient() {
                     </p>
                 </div>
             </section>
+
+            {/* FAQ Section for SEO */}
+            <FAQSection />
 
             {/* Footer */}
             <footer className="border-t-4 border-black py-6 md:py-10 bg-gray-50 px-4">

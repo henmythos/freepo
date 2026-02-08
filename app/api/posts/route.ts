@@ -66,7 +66,8 @@ async function ensureTable() {
         "longitude REAL",
         "listing_plan TEXT DEFAULT 'free'",
         "is_featured BOOLEAN DEFAULT 0",
-        "public_ad_id TEXT"
+        "public_ad_id TEXT",
+        "is_negotiable BOOLEAN DEFAULT 0"
     ];
 
     for (const col of columnsToAdd) {
@@ -505,7 +506,8 @@ export async function POST(request: NextRequest) {
             image3 = null,
             image4 = null,
             image5 = null,
-            contact_preference = "both"
+            contact_preference = "both",
+            is_negotiable = false
         } = body;
 
         // Format price and salary to Indian format with ₹ symbol
@@ -535,7 +537,7 @@ export async function POST(request: NextRequest) {
           expires_at, image1, image2, image3, image4, image5, 
           image1_alt, image2_alt, image3_alt, image4_alt, image5_alt, 
           contact_preference, locality, latitude, longitude,
-          listing_plan, is_featured, public_ad_id
+          listing_plan, is_featured, public_ad_id, is_negotiable
         )
         VALUES (
           ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 
@@ -543,7 +545,7 @@ export async function POST(request: NextRequest) {
           ?, ?, ?, ?, ?, 
           ?, ?, ?, ?, ?, 
           ?, ?, ?, ?,
-          ?, ?, ?
+          ?, ?, ?, ?
         );
       `,
             args: [
@@ -578,7 +580,8 @@ export async function POST(request: NextRequest) {
                 longitude,
                 finalListingPlan,
                 isFeatured,
-                public_ad_id
+                public_ad_id,
+                is_negotiable ? 1 : 0
             ],
         });
 

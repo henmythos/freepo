@@ -150,8 +150,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
                     <ArrowLeft size={16} className="mr-1" /> Back
                 </Link>
 
-                {/* Canonical Link (Backup for head) */}
-                <link rel="canonical" href={`https://freepo.in/item/${params.slug}`} />
+
 
                 {/* Image Carousel */}
                 <div className="mb-6">
