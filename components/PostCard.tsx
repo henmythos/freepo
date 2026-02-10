@@ -161,10 +161,10 @@ export default function PostCard({ post, priority = false }: PostCardProps) {
             </p>
           </div>
           <div className="flex-shrink-0 text-right">
-            {post.price && (
+            {post.price && post.price !== "0" && post.price !== "₹0" && (
               <div className="font-bold text-sm text-green-700">{formatPrice(post.price)}</div>
             )}
-            {post.salary && (
+            {post.salary && post.salary !== "0" && post.salary !== "₹0" && (
               <div className="font-bold text-sm text-green-700">{formatPrice(post.salary)}</div>
             )}
             {/* Price Negotiable Badge */}

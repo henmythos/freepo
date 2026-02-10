@@ -11,6 +11,7 @@ import {
     Eye,
     MapPin,
 } from "lucide-react";
+import { formatPrice } from "@/lib/priceUtils";
 import type { Metadata } from "next";
 import ImageCarousel from "@/components/ImageCarousel";
 import ShareButton from "@/components/ShareButton";
@@ -184,11 +185,11 @@ export default async function ItemDetailPage({ params }: PageProps) {
                     )}
 
                     <div className="flex flex-wrap gap-4 text-lg font-sans font-medium">
-                        {post.price && (
-                            <span className="bg-gray-100 px-3 py-1">{post.price}</span>
+                        {post.price && post.price !== "0" && post.price !== "₹0" && (
+                            <span className="bg-gray-100 px-3 py-1">{formatPrice(post.price)}</span>
                         )}
-                        {post.salary && (
-                            <span className="bg-gray-100 px-3 py-1">{post.salary}</span>
+                        {post.salary && post.salary !== "0" && post.salary !== "₹0" && (
+                            <span className="bg-gray-100 px-3 py-1">{formatPrice(post.salary)}</span>
                         )}
                         {post.job_type && (
                             <span className="border border-gray-300 px-3 py-1 text-sm pt-1.5">
