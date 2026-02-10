@@ -168,7 +168,7 @@ export default function PostCard({ post, priority = false }: PostCardProps) {
               <div className="font-bold text-sm text-green-700">{formatPrice(post.salary)}</div>
             )}
             {/* Price Negotiable Badge */}
-            {post.is_negotiable && (post.price || post.salary) && (
+            {!!post.is_negotiable && (post.price || post.salary) && (
               <div className="text-[9px] text-orange-600 font-bold uppercase mt-0.5">Negotiable</div>
             )}
             {post.job_type && (

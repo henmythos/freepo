@@ -135,7 +135,7 @@ export default function GridPostCard({ post, priority = false }: GridPostCardPro
                     {post.price && post.price !== "0" && post.price !== "₹0" && (
                         <div className="absolute bottom-2 left-2 bg-green-700 text-white px-2 py-1 text-sm font-bold shadow-sm">
                             {formatPrice(post.price)}
-                            {post.is_negotiable && (
+                            {!!post.is_negotiable && (
                                 <span className="ml-1 text-[9px] opacity-80">• Neg</span>
                             )}
                         </div>
