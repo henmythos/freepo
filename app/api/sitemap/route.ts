@@ -11,11 +11,16 @@ export async function GET() {
         const db = getDB();
 
         // Get posts with necessary fields for slug generation and image sitemap
+        // Only include active (non-expired) posts
         const postsResult = await db.execute(
-            "SELECT id, created_at, title, city, category, image1, image1_alt FROM posts ORDER BY created_at DESC LIMIT 5000"
+            "SELECT id, created_at, title, city, category, image1, image1_alt FROM posts WHERE expires_at > CURRENT_TIMESTAMP ORDER BY created_at DESC LIMIT 5000"
         );
 
         const baseUrl = "https://freepo.in";
+
+        // Helper: convert category name to URL slug (matches Next.js routes)
+        const categoryToSlug = (cat: string) =>
+            cat.toLowerCase().replace(/\//, "-").replace(/&/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
 
         let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -29,12 +34,23 @@ export async function GET() {
   <url><loc>${baseUrl}/refund-policy</loc><priority>0.3</priority></url>
   <url><loc>${baseUrl}/contact</loc><priority>0.3</priority></url>`;
 
-        // ALL City + Category pages
+        // City hub pages (e.g. /city/mumbai)
+        TOP_CITIES.forEach((city) => {
+            xml += `
+  <url>
+    <loc>${baseUrl}/city/${city.toLowerCase()}</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>`;
+        });
+
+        // ALL Category + City pages (using proper URL slugs)
         CATEGORIES.forEach((cat) => {
+            const catSlug = categoryToSlug(cat);
             TOP_CITIES.forEach((city) => {
                 xml += `
   <url>
-    <loc>${baseUrl}/${encodeURIComponent(cat)}/${encodeURIComponent(city)}</loc>
+    <loc>${baseUrl}/${catSlug}/${city.toLowerCase()}</loc>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>`;
@@ -51,11 +67,12 @@ export async function GET() {
                 const areaSlug = area.toLowerCase().replace(/ /g, "-");
 
                 PRIORITY_CATS.forEach(cat => {
+                    const catSlug = categoryToSlug(cat);
                     xml += `
   <url>
-    <loc>${baseUrl}/${cat.toLowerCase()}/${cityKey}/${areaSlug}</loc>
+    <loc>${baseUrl}/${catSlug}/${cityKey}/${areaSlug}</loc>
     <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
+    <priority>0.6</priority>
   </url>`;
                 });
             });

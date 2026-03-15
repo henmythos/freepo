@@ -5,11 +5,65 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
     title: "About Us | Freepo.in",
     description: "Learn about Freepo.in - India's fastest, simplest, and free classifieds platform.",
+    alternates: {
+        canonical: 'https://freepo.in/about',
+    },
+};
+
+const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+        {
+            "@type": "Question",
+            "name": "Is Freepo.in really free?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. Freepo.in is 100% free forever. You can post classified ads for jobs, rentals, cars, properties, and more without any hidden charges or sign-up required."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Do I need to create an account to post an ad on Freepo.in?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. You do not need to create an account or log in. Simply fill out a short form and your ad goes live instantly."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "How long do ads stay live on Freepo.in?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Free ads stay live for 30 days from the date of posting. You can post up to 3 free ads per 30 days per phone number."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "What categories are available on Freepo.in?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Freepo.in supports Jobs, Properties, Rentals, Cars, Bikes, Electronics, Services, Buy/Sell, Education, Events, Community, and Lost & Found."
+            }
+        },
+        {
+            "@type": "Question",
+            "name": "Which cities does Freepo.in cover?",
+            "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Freepo.in covers all major Indian cities including Mumbai, Delhi, Bangalore, Hyderabad, Chennai, Kolkata, Pune, Jaipur, Ahmedabad, and many more."
+            }
+        }
+    ]
 };
 
 export default function AboutPage() {
     return (
         <div className="min-h-screen bg-paper">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+            />
             <div className="max-w-3xl mx-auto py-8 px-4">
                 <Link
                     href="/"

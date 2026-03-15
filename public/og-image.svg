@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a"/>
+      <stop offset="100%" style="stop-color:#1a1a1a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF6B35"/>
+      <stop offset="100%" style="stop-color:#FF9F1C"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Grid lines (newspaper feel) -->
+  <line x1="0" y1="210" x2="1200" y2="210" stroke="#222" stroke-width="1"/>
+  <line x1="0" y1="420" x2="1200" y2="420" stroke="#222" stroke-width="1"/>
+  <line x1="400" y1="0" x2="400" y2="630" stroke="#222" stroke-width="1"/>
+  <line x1="800" y1="0" x2="800" y2="630" stroke="#222" stroke-width="1"/>
+
+  <!-- Orange accent bar -->
+  <rect x="80" y="180" width="8" height="120" fill="url(#accent)" rx="4"/>
+
+  <!-- Main logo text -->
+  <text x="110" y="270" font-family="Georgia, serif" font-size="88" font-weight="bold" fill="white" letter-spacing="-2">Freepo</text>
+  <text x="110" y="330" font-family="Georgia, serif" font-size="88" font-weight="bold" fill="url(#accent)" letter-spacing="-2">.in</text>
+
+  <!-- Tagline -->
+  <text x="110" y="390" font-family="Arial, sans-serif" font-size="28" fill="#aaaaaa" letter-spacing="2">FREE CLASSIFIEDS INDIA</text>
+
+  <!-- Category pills -->
+  <rect x="110" y="430" width="120" height="36" rx="18" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <text x="170" y="453" font-family="Arial, sans-serif" font-size="14" fill="#888" text-anchor="middle">Jobs</text>
+
+  <rect x="245" y="430" width="140" height="36" rx="18" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <text x="315" y="453" font-family="Arial, sans-serif" font-size="14" fill="#888" text-anchor="middle">Rentals</text>
+
+  <rect x="400" y="430" width="120" height="36" rx="18" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <text x="460" y="453" font-family="Arial, sans-serif" font-size="14" fill="#888" text-anchor="middle">Cars</text>
+
+  <rect x="535" y="430" width="160" height="36" rx="18" fill="#1e1e1e" stroke="#333" stroke-width="1"/>
+  <text x="615" y="453" font-family="Arial, sans-serif" font-size="14" fill="#888" text-anchor="middle">Properties</text>
+
+  <!-- Right side badge -->
+  <rect x="850" y="200" width="260" height="230" rx="12" fill="#111" stroke="#333" stroke-width="1"/>
+  <text x="980" y="255" font-family="Arial, sans-serif" font-size="13" fill="#666" text-anchor="middle" letter-spacing="3">NO LOGIN REQUIRED</text>
+  <text x="980" y="310" font-family="Georgia, serif" font-size="56" font-weight="bold" fill="white" text-anchor="middle">100%</text>
+  <text x="980" y="355" font-family="Arial, sans-serif" font-size="22" fill="url(#accent)" text-anchor="middle" letter-spacing="2">FREE FOREVER</text>
+  <text x="980" y="400" font-family="Arial, sans-serif" font-size="13" fill="#555" text-anchor="middle">Post in 30 seconds</text>
+
+  <!-- India flag dots -->
+  <circle cx="1100" cy="57" r="6" fill="#FF9933"/>
+  <circle cx="1120" cy="57" r="6" fill="white"/>
+  <circle cx="1140" cy="57" r="6" fill="#138808"/>
+
+  <!-- URL bar at bottom -->
+  <rect x="0" y="580" width="1200" height="50" fill="#111"/>
+  <text x="600" y="612" font-family="Arial, sans-serif" font-size="18" fill="#555" text-anchor="middle" letter-spacing="2">freepo.in — India's Newspaper Style Classifieds</text>
+</svg>

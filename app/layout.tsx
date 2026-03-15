@@ -26,11 +26,20 @@ export const metadata: Metadata = {
         siteName: 'Freepo.in',
         locale: 'en_IN',
         type: 'website',
+        images: [
+            {
+                url: 'https://freepo.in/og-image.svg',
+                width: 1200,
+                height: 630,
+                alt: 'Freepo.in — Free Classifieds India',
+            },
+        ],
     },
     twitter: {
         card: 'summary_large_image',
         title: "Freepo.in | Free Classifieds India",
         description: "Post free classified ads in India. Jobs, rentals, cars & more.",
+        images: ['https://freepo.in/og-image.svg'],
     },
     robots: {
         index: true,
@@ -87,7 +96,10 @@ const jsonLd = {
                 '@type': 'ImageObject',
                 url: 'https://freepo.in/apple-touch-icon.png',
             },
-            sameAs: [],
+            sameAs: [
+                'https://freepo.in/about',
+                'https://freepo.in/contact',
+            ],
             contactPoint: {
                 '@type': 'ContactPoint',
                 contactType: 'customer service',
@@ -136,9 +148,9 @@ export default function RootLayout({
                 {children}
                 <Script
                     src="https://www.googletagmanager.com/gtag/js?id=G-RMCXY21ZJ3"
-                    strategy="lazyOnload"
+                    strategy="afterInteractive"
                 />
-                <Script id="google-analytics" strategy="lazyOnload">
+                <Script id="google-analytics" strategy="afterInteractive">
                     {`
                         window.dataLayer = window.dataLayer || [];
                         function gtag(){dataLayer.push(arguments);}

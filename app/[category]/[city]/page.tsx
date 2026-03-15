@@ -7,6 +7,7 @@ import PostCard from "@/components/PostCard";
 import GridPostCard from "@/components/GridPostCard";
 import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
+import { generateSlug } from "@/lib/slugUtils";
 
 interface PageProps {
     params: {
@@ -50,6 +51,7 @@ async function getPosts(category: string, city: string): Promise<Post[]> {
             sql: `
                 SELECT * FROM posts 
                 WHERE category = ? COLLATE NOCASE AND city = ? COLLATE NOCASE
+                AND expires_at > CURRENT_TIMESTAMP
                 ORDER BY created_at DESC 
                 LIMIT 30
             `,
@@ -61,6 +63,19 @@ async function getPosts(category: string, city: string): Promise<Post[]> {
         console.error("[GET SEO POSTS ERROR]", e);
         return [];
     }
+}
+
+// Pre-render all valid category + city combos at build time
+export async function generateStaticParams() {
+    const categoryToSlug = (cat: string) =>
+        cat.toLowerCase().replace(/\//, "-").replace(/&/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
+
+    return CATEGORIES.flatMap((cat) =>
+        TOP_CITIES.map((city) => ({
+            category: categoryToSlug(cat),
+            city: city.toLowerCase(),
+        }))
+    );
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -132,7 +147,7 @@ export default async function SEOCategoryPage({ params }: PageProps) {
             "itemListElement": posts.map((post, index) => ({
                 "@type": "ListItem",
                 "position": index + 1,
-                "url": `https://freepo.in/item/${post.id}`,
+                "url": `https://freepo.in/item/${generateSlug(post.title, post.city, post.category)}-iid-${post.id}`,
                 "name": post.title
             }))
         }

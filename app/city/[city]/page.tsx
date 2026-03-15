@@ -8,6 +8,7 @@ import { Post } from "@/lib/types";
 import { CITY_DATA } from "@/lib/cityData";
 import { TOP_CITIES, CATEGORIES, CATEGORY_IMAGES } from "@/lib/constants";
 import PostCard from "@/components/PostCard";
+import { generateSlug } from "@/lib/slugUtils";
 
 interface PageProps {
     params: {
@@ -37,6 +38,7 @@ async function getCityPosts(city: string): Promise<Post[]> {
             sql: `
                 SELECT * FROM posts 
                 WHERE city = ? COLLATE NOCASE
+                AND expires_at > CURRENT_TIMESTAMP
                 ORDER BY created_at DESC 
                 LIMIT 20
             `,
@@ -119,7 +121,7 @@ export default async function CityPage({ params }: PageProps) {
             "itemListElement": posts.map((post, index) => ({
                 "@type": "ListItem",
                 "position": index + 1,
-                "url": `https://freepo.in/post/${post.id}`, // Assuming this route exists
+                "url": `https://freepo.in/item/${generateSlug(post.title, post.city, post.category)}-iid-${post.id}`,
                 "name": post.title
             }))
         }

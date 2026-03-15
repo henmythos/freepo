@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Build query
-        let sql = "SELECT * FROM posts WHERE 1=1";
+        let sql = "SELECT * FROM posts WHERE expires_at > CURRENT_TIMESTAMP";
         const args: (string | number)[] = [];
 
         // Geolocation Logic (Bounding Box)
@@ -238,7 +238,7 @@ export async function GET(request: NextRequest) {
                         const nearestCity = cityRes.rows[0].city as string;
                         console.log("Found Nearest City:", nearestCity);
 
-                        let fallbackSql = "SELECT * FROM posts WHERE LOWER(city) = LOWER(?)";
+                        let fallbackSql = "SELECT * FROM posts WHERE expires_at > CURRENT_TIMESTAMP AND LOWER(city) = LOWER(?)";
                         const fallbackArgs: (string | number)[] = [nearestCity];
 
                         if (category && category !== "All") {
@@ -267,7 +267,7 @@ export async function GET(request: NextRequest) {
             if (rows.length === 0 && (city || (!isNaN(lat) && !isNaN(lng)))) {
                 console.log("No results for location. Falling back to global search.");
 
-                let fallbackSql = "SELECT * FROM posts WHERE 1=1";
+                let fallbackSql = "SELECT * FROM posts WHERE expires_at > CURRENT_TIMESTAMP";
                 const fallbackArgs: (string | number)[] = [];
 
                 if (category && category !== "All") {
@@ -431,31 +431,24 @@ export async function POST(request: NextRequest) {
         }
 
         // Check 30-day Limit Rule (ONLY for FREE plans)
-        // Rule: 1 free listing per user per 30 days
+        // Rule: 3 free listings per user per 30 days
         if (finalListingPlan === "free") {
+            const FREE_LIMIT = 3;
             const { rows } = await db.execute({
                 sql: `
-                    SELECT created_at FROM posts 
+                    SELECT COUNT(*) as cnt FROM posts 
                     WHERE contact_phone = ? 
                     AND listing_plan = 'free' 
                     AND created_at > datetime('now', '-30 days')
-                    LIMIT 1
                 `,
                 args: [cleanPhone],
             });
 
-            if (rows.length > 0) {
-                // Found a free post in last 30 days
-                const lastPost = new Date((rows[0] as Record<string, unknown>).created_at as string);
-                const now = new Date();
-                const diffTime = Math.abs(now.getTime() - lastPost.getTime());
-                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                const remaining = 30 - diffDays;
+            const count = Number((rows[0] as Record<string, unknown>).cnt ?? 0);
 
-                const timeMsg = remaining <= 0 ? "less than 24 hours" : `${remaining} days`;
-
+            if (count >= FREE_LIMIT) {
                 return NextResponse.json(
-                    { error: `Free listing limit reached (1 per 30 days). Please wait ${timeMsg} or upgrade to a Premium Plan to post immediately.` },
+                    { error: `Free listing limit reached (${FREE_LIMIT} per 30 days). Please wait for your oldest listing to expire, or upgrade to a Premium Plan to post immediately.` },
                     { status: 429 }
                 );
             }
@@ -591,11 +584,11 @@ export async function POST(request: NextRequest) {
             args: [city],
         }).catch((e) => console.error("[STATS ERROR]", e.message));
 
-        // Google Indexing API: Notify for Jobs category (fire & forget)
-        if (category === "Jobs") {
+        // Google Indexing API: Notify for all categories (fire & forget)
+        {
             const slug = generateSlug(title, city, category);
-            const jobUrl = `https://freepo.in/item/${slug}-iid-${id}`;
-            notifyGoogleIndexing(jobUrl, 'URL_UPDATED').catch((e) =>
+            const postUrl = `https://freepo.in/item/${slug}-iid-${id}`;
+            notifyGoogleIndexing(postUrl, 'URL_UPDATED').catch((e) =>
                 console.error("[INDEXING ERROR]", e)
             );
         }

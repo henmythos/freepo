@@ -1,7 +1,8 @@
 User-agent: *
 Allow: /
 
-# Sitemap
+# Sitemaps
+Sitemap: https://freepo.in/sitemap.xml
 Sitemap: https://freepo.in/api/sitemap
 
 # Crawl-delay (optional, for polite crawling)

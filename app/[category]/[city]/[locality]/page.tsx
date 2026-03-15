@@ -104,6 +104,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const displayCity = formatSlug(city);
     const displayCategory = formatSlug(category);
 
+    // Check if the page has any content — if empty, noindex to avoid thin-content penalty
+    const { exact, nearby } = await getLocalityPosts(category, city, locality);
+    const isEmpty = exact.length === 0 && nearby.length === 0;
+
     return {
         title: `${displayCategory} in ${displayLocality}, ${displayCity} - Free Classifieds | Freepo.in`,
         description: `Find ${displayCategory} in ${displayLocality}, ${displayCity}. Buy, sell, rent, and find jobs in ${displayLocality}. Best free alternative to OLX & Quikr in ${displayCity}.`,
@@ -114,6 +118,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
             title: `${displayCategory} in ${displayLocality} | Freepo.in`,
             description: `Browse 100% free listings for ${displayCategory} in ${displayLocality}, ${displayCity}. No middleman, direct contact.`,
         },
+        ...(isEmpty && {
+            robots: {
+                index: false,
+                follow: true,
+            },
+        }),
     };
 }
 
